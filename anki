@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anki 単語帳一括変換ツール</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #f4f4f4;
+    color: #222;
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+}
+
+.container {
+    max-width: 1000px;
+    margin: auto;
+    padding: 24px;
+}
+
+h1 {
+    margin-top: 0;
+}
+
+.panel {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 18px;
+}
+
+textarea {
+    width: 100%;
+    min-height: 300px;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    resize: vertical;
+    font-family: monospace;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+input {
+    width: 100%;
+    padding: 11px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 7px;
+}
+
+button {
+    border: none;
+    border-radius: 8px;
+    padding: 11px 18px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-right: 8px;
+    margin-top: 10px;
+}
+
+#generate {
+    background: #222;
+    color: white;
+}
+
+#copy {
+    background: #1976d2;
+    color: white;
+}
+
+#download {
+    background: #388e3c;
+    color: white;
+}
+
+button:hover {
+    opacity: 0.85;
+}
+
+.info {
+    background: #f7f7f7;
+    padding: 12px;
+    border-radius: 8px;
+    line-height: 1.7;
+}
+
+.status {
+    margin-top: 12px;
+    font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Anki 単語帳一括変換ツール</h1>
+
+<div class="panel">
+
+<h2>① 設定</h2>
+
+<label for="deck">デッキ名</label>
+
+<input
+    id="deck"
+    type="text"
+    value=""
+    placeholder="任意：例 ターゲット1200"
+>
+
+<br><br>
+
+<label for="filename">ファイル名</label>
+
+<input
+    id="filename"
+    type="text"
+    value=""
+    placeholder="任意：例 target1200_anki.txt"
+>
+
+</div>
+
+
+<div class="panel">
+
+<h2>② 単語帳を貼り付け</h2>
+
+<div class="info">
+
+入力形式：
+
+<br>
+
+<code>1　change　変える</code>
+
+<br>
+
+<code>2　learn　学ぶ</code>
+
+<br>
+
+<code>50　need　必要とする</code>
+
+<br><br>
+
+半角スペース・全角スペース・タブのどれでも認識します。
+
+<br>
+
+番号は自動的に4桁へ変換します。
+
+<br>
+
+例：1 → 0001、50 → 0050、1700 → 1700
+
+</div>
+
+<br>
+
+<textarea
+    id="input"
+    placeholder="ここに単語帳を貼り付けてください"
+></textarea>
+
+</div>
+
+
+<div class="panel">
+
+<h2>③ Anki用ファイルを生成</h2>
+
+<button id="generate">
+生成
+</button>
+
+<button id="copy">
+コピー
+</button>
+
+<button id="download">
+.txtをダウンロード
+</button>
+
+<div
+    class="status"
+    id="status"
+>
+まだ生成していません。
+</div>
+
+</div>
+
+
+<div class="panel">
+
+<h2>④ 生成結果</h2>
+
+<textarea
+    id="output"
+    readonly
+    placeholder="ここに生成結果が表示されます"
+></textarea>
+
+</div>
+
+
+<div class="panel">
+
+<h2>⑤ Anki側の設定</h2>
+
+<div class="info">
+
+このツールは以下の3フィールドを使います。
+
+<br><br>
+
+<strong>Number</strong><br>
+番号（0001、0002、0050など）
+
+<br><br>
+
+<strong>Front</strong><br>
+英単語
+
+<br><br>
+
+<strong>Back</strong><br>
+日本語訳
+
+<br><br>
+
+Ankiでは、
+
+<br>
+
+<code>Number / Front / Back</code>
+
+<br>
+
+という3フィールドのノートタイプを用意してください。
+
+<br><br>
+
+<strong>Numberはカード上に表示しなくてもOKです。</strong>
+
+<br>
+
+カードテンプレートでNumberを使わなければ、表・裏には表示されません。
+
+</div>
+
+</div>
+
+</div>
+
+
+<script>
+
+let generatedText = "";
+
+
+// ----------------------------------------
+// 行を解析
+// ----------------------------------------
+
+function parseLine(line) {
+
+    line = line.trim();
+
+    if (!line) {
+        return null;
+    }
+
+
+    /*
+        以下を認識
+
+        1 change 変える
+        1　change　変える
+        1<TAB>change<TAB>変える
+
+        1. change 変える
+        1、change 変える
+    */
+
+    const match = line.match(
+        /^\s*(\d+)[\.\、、]?\s+(\S+)\s+(.+?)\s*$/
+    );
+
+    if (!match) {
+        return null;
+    }
+
+
+    return {
+        number: parseInt(match[1], 10),
+        word: match[2],
+        meaning: match[3]
+    };
+
+}
+
+
+// ----------------------------------------
+// TSVフィールドの安全処理
+// ----------------------------------------
+
+function escapeField(value) {
+
+    value = String(value);
+
+    /*
+        タブ・改行・引用符がある場合、
+        TSVを壊さないよう引用符で囲む。
+    */
+
+    if (
+        value.includes("\t") ||
+        value.includes("\n") ||
+        value.includes("\r") ||
+        value.includes('"')
+    ) {
+
+        return '"' +
+            value.replace(/"/g, '""') +
+            '"';
+
+    }
+
+    return value;
+
+}
+
+
+// ----------------------------------------
+// 4桁化
+// ----------------------------------------
+
+function formatNumber(number) {
+
+    return String(number).padStart(4, "0");
+
+}
+
+
+// ----------------------------------------
+// 生成
+// ----------------------------------------
+
+function generate() {
+
+    const input =
+        document.getElementById("input").value;
+
+    const deck =
+        document.getElementById("deck").value.trim();
+
+
+    const lines =
+        input.split(/\r?\n/);
+
+
+    const rows = [];
+
+    let skipped = 0;
+
+
+    for (const line of lines) {
+
+        if (!line.trim()) {
+            continue;
+        }
+
+
+        const data =
+            parseLine(line);
+
+
+        if (!data) {
+
+            skipped++;
+
+            continue;
+
+        }
+
+
+        const number =
+            formatNumber(data.number);
+
+
+        rows.push([
+
+            number,
+
+            data.word,
+
+            data.meaning
+
+        ]);
+
+    }
+
+
+    if (rows.length === 0) {
+
+        alert(
+            "読み取れるデータがありません。\n\n" +
+            "例：\n" +
+            "1 change 変える"
+        );
+
+        return;
+
+    }
+
+
+    // ------------------------------------
+    // Anki公式ファイルヘッダー
+    // ------------------------------------
+
+    const output = [];
+
+
+    output.push(
+        "#separator:tab"
+    );
+
+
+    output.push(
+        "#html:false"
+    );
+
+
+    output.push(
+        "#columns:Number\tFront\tBack"
+    );
+
+
+    // デッキ名が入力されている場合だけ追加
+    if (deck) {
+
+        output.push(
+            "#deck:" + deck
+        );
+
+    }
+
+
+    /*
+        3フィールド用ノートタイプ。
+
+        Anki側で作成したノートタイプ名を
+        必要に応じて変更してください。
+    */
+
+    output.push(
+        "#notetype:Vocabulary 3 Fields"
+    );
+
+
+    output.push("");
+
+
+    // ------------------------------------
+    // データ
+    // ------------------------------------
+
+    for (const row of rows) {
+
+        output.push(
+
+            escapeField(row[0]) +
+            "\t" +
+            escapeField(row[1]) +
+            "\t" +
+            escapeField(row[2])
+
+        );
+
+    }
+
+
+    generatedText =
+        output.join("\n");
+
+
+    document.getElementById("output").value =
+        generatedText;
+
+
+    document.getElementById("status").textContent =
+
+        rows.length +
+        "件生成しました。" +
+
+        (
+            skipped > 0
+                ? "　読み取れなかった行：" +
+                  skipped +
+                  "件"
+                : ""
+        );
+
+}
+
+
+// ----------------------------------------
+// コピー
+// ----------------------------------------
+
+document
+    .getElementById("copy")
+    .addEventListener("click", async () => {
+
+        if (!generatedText) {
+
+            alert(
+                "先に「生成」を押してください。"
+            );
+
+            return;
+
+        }
+
+
+        try {
+
+            await navigator.clipboard.writeText(
+                generatedText
+            );
+
+            alert("コピーしました。");
+
+        }
+        catch (error) {
+
+            const output =
+                document.getElementById("output");
+
+            output.select();
+
+            document.execCommand("copy");
+
+            alert("コピーしました。");
+
+        }
+
+    });
+
+
+// ----------------------------------------
+// ダウンロード
+// ----------------------------------------
+
+document
+    .getElementById("download")
+    .addEventListener("click", () => {
+
+        if (!generatedText) {
+
+            alert(
+                "先に「生成」を押してください。"
+            );
+
+            return;
+
+        }
+
+
+        let filename =
+            document
+                .getElementById("filename")
+                .value
+                .trim();
+
+
+        // ファイル名が空欄なら自動命名
+        if (!filename) {
+
+            filename =
+                "anki_import.txt";
+
+        }
+
+
+        if (
+            !filename
+                .toLowerCase()
+                .endsWith(".txt")
+        ) {
+
+            filename += ".txt";
+
+        }
+
+
+        /*
+            UTF-8 BOM
+        */
+
+        const bom =
+            "\uFEFF";
+
+
+        const blob =
+            new Blob(
+                [bom + generatedText],
+                {
+                    type:
+                        "text/plain;charset=utf-8"
+                }
+            );
+
+
+        const url =
+            URL.createObjectURL(blob);
+
+
+        const a =
+            document.createElement("a");
+
+
+        a.href = url;
+
+        a.download = filename;
+
+        document.body.appendChild(a);
+
+        a.click();
+
+        document.body.removeChild(a);
+
+
+        URL.revokeObjectURL(url);
+
+    });
+
+
+// ----------------------------------------
+// 生成ボタン
+// ----------------------------------------
+
+document
+    .getElementById("generate")
+    .addEventListener("click", generate);
+
+</script>
+
+</body>
+</html>
