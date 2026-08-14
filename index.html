@@ -163,7 +163,27 @@ button:hover {
 
 <br><br>
 
-半角スペース・全角スペース・タブのどれでも認識します。
+複数語の熟語にも対応しています。
+
+<br>
+
+例：
+
+<br>
+
+<code>1111　break　"out　突然起こる，勃発する"</code>
+
+<br>
+
+↓
+
+<br>
+
+<code>1111　break out　突然起こる，勃発する</code>
+
+<br><br>
+
+半角スペース・全角スペース・タブに対応。
 
 <br>
 
@@ -240,7 +260,7 @@ button:hover {
 <br><br>
 
 <strong>Front</strong><br>
-英単語
+英単語・熟語
 
 <br><br>
 
@@ -265,7 +285,8 @@ Ankiでは、
 
 <br>
 
-カードテンプレートでNumberを使わなければ、表・裏には表示されません。
+カードテンプレートでNumberを使わなければ、
+表・裏には表示されません。
 
 </div>
 
@@ -279,9 +300,9 @@ Ankiでは、
 let generatedText = "";
 
 
-// ----------------------------------------
+// ==================================================
 // 行を解析
-// ----------------------------------------
+// ==================================================
 
 function parseLine(line) {
 
@@ -292,20 +313,122 @@ function parseLine(line) {
     }
 
 
+    // ----------------------------------------------
+    // ① タブ区切りを優先して解析
+    // ----------------------------------------------
+
+    const tabParts = line.split("\t");
+
+
+    if (tabParts.length >= 3) {
+
+        /*
+            例：
+
+            1111    break    "out    突然起こる，勃発する"
+
+            ↓
+
+            tabParts[0] = 1111
+            tabParts[1] = break
+            tabParts[2] = "out
+            tabParts[3] = 突然起こる，勃発する
+
+            最後をBack、
+            それ以外をFrontとして結合する。
+        */
+
+
+        const numberText =
+            tabParts[0]
+                .trim()
+                .replace(/^[\.\、]+/, "");
+
+
+        const numberMatch =
+            numberText.match(/^(\d+)$/);
+
+
+        if (!numberMatch) {
+            return null;
+        }
+
+
+        const number =
+            parseInt(numberMatch[1], 10);
+
+
+        // 最後のフィールド = 日本語訳
+        let meaning =
+            tabParts[tabParts.length - 1]
+                .trim();
+
+
+        // それ以前 = Front
+        let word =
+            tabParts
+                .slice(1, -1)
+                .join(" ")
+                .trim();
+
+
+        /*
+            入力データに含まれている
+            不要な引用符を削除
+        */
+
+        word =
+            word
+                .replace(/^"+/, "")
+                .replace(/"+$/, "")
+                .trim();
+
+
+        meaning =
+            meaning
+                .replace(/^"+/, "")
+                .replace(/"+$/, "")
+                .trim();
+
+
+        if (!word || !meaning) {
+            return null;
+        }
+
+
+        return {
+
+            number: number,
+
+            word: word,
+
+            meaning: meaning
+
+        };
+
+    }
+
+
+    // ----------------------------------------------
+    // ② タブがない場合
+    // ----------------------------------------------
+
     /*
-        以下を認識
+        以下にも対応：
 
         1 change 変える
-        1　change　変える
-        1<TAB>change<TAB>変える
+        2 learn 学ぶ
+        3 help 手伝う，助ける
 
-        1. change 変える
-        1、change 変える
+        1　change　変える
     */
 
-    const match = line.match(
-        /^\s*(\d+)[\.\、、]?\s+(\S+)\s+(.+?)\s*$/
-    );
+
+    const match =
+        line.match(
+            /^\s*(\d+)[\.\、]?\s+(\S+)\s+(.+?)\s*$/
+        );
+
 
     if (!match) {
         return null;
@@ -313,21 +436,29 @@ function parseLine(line) {
 
 
     return {
-        number: parseInt(match[1], 10),
-        word: match[2],
-        meaning: match[3]
+
+        number:
+            parseInt(match[1], 10),
+
+        word:
+            match[2],
+
+        meaning:
+            match[3].trim()
+
     };
 
 }
 
 
-// ----------------------------------------
+// ==================================================
 // TSVフィールドの安全処理
-// ----------------------------------------
+// ==================================================
 
 function escapeField(value) {
 
     value = String(value);
+
 
     /*
         タブ・改行・引用符がある場合、
@@ -347,14 +478,15 @@ function escapeField(value) {
 
     }
 
+
     return value;
 
 }
 
 
-// ----------------------------------------
+// ==================================================
 // 4桁化
-// ----------------------------------------
+// ==================================================
 
 function formatNumber(number) {
 
@@ -363,17 +495,23 @@ function formatNumber(number) {
 }
 
 
-// ----------------------------------------
+// ==================================================
 // 生成
-// ----------------------------------------
+// ==================================================
 
 function generate() {
 
     const input =
-        document.getElementById("input").value;
+        document
+            .getElementById("input")
+            .value;
+
 
     const deck =
-        document.getElementById("deck").value.trim();
+        document
+            .getElementById("deck")
+            .value
+            .trim();
 
 
     const lines =
@@ -384,6 +522,10 @@ function generate() {
 
     let skipped = 0;
 
+
+    // ----------------------------------------------
+    // 全行を解析
+    // ----------------------------------------------
 
     for (const line of lines) {
 
@@ -422,6 +564,10 @@ function generate() {
     }
 
 
+    // ----------------------------------------------
+    // データがない場合
+    // ----------------------------------------------
+
     if (rows.length === 0) {
 
         alert(
@@ -435,9 +581,9 @@ function generate() {
     }
 
 
-    // ------------------------------------
-    // Anki公式ファイルヘッダー
-    // ------------------------------------
+    // ==================================================
+    // Anki用ヘッダー
+    // ==================================================
 
     const output = [];
 
@@ -467,13 +613,7 @@ function generate() {
     }
 
 
-    /*
-        3フィールド用ノートタイプ。
-
-        Anki側で作成したノートタイプ名を
-        必要に応じて変更してください。
-    */
-
+    // 3フィールド用ノートタイプ
     output.push(
         "#notetype:Vocabulary 3 Fields"
     );
@@ -482,9 +622,9 @@ function generate() {
     output.push("");
 
 
-    // ------------------------------------
-    // データ
-    // ------------------------------------
+    // ==================================================
+    // データを書き込む
+    // ==================================================
 
     for (const row of rows) {
 
@@ -505,165 +645,198 @@ function generate() {
         output.join("\n");
 
 
-    document.getElementById("output").value =
-        generatedText;
+    // 表示
+    document
+        .getElementById("output")
+        .value =
+            generatedText;
 
 
-    document.getElementById("status").textContent =
+    // ステータス
+    document
+        .getElementById("status")
+        .textContent =
 
-        rows.length +
-        "件生成しました。" +
+            rows.length +
+            "件生成しました。" +
 
-        (
-            skipped > 0
-                ? "　読み取れなかった行：" +
-                  skipped +
-                  "件"
-                : ""
-        );
+            (
+                skipped > 0
+
+                    ? "　読み取れなかった行：" +
+                      skipped +
+                      "件"
+
+                    : ""
+            );
 
 }
 
 
-// ----------------------------------------
+// ==================================================
 // コピー
-// ----------------------------------------
+// ==================================================
 
 document
     .getElementById("copy")
-    .addEventListener("click", async () => {
+    .addEventListener(
+        "click",
+        async () => {
 
-        if (!generatedText) {
+            if (!generatedText) {
 
-            alert(
-                "先に「生成」を押してください。"
-            );
+                alert(
+                    "先に「生成」を押してください。"
+                );
 
-            return;
+                return;
+
+            }
+
+
+            try {
+
+                await navigator.clipboard.writeText(
+                    generatedText
+                );
+
+                alert("コピーしました。");
+
+            }
+            catch (error) {
+
+                const output =
+                    document
+                        .getElementById("output");
+
+
+                output.select();
+
+
+                document.execCommand(
+                    "copy"
+                );
+
+
+                alert("コピーしました。");
+
+            }
 
         }
+    );
 
 
-        try {
-
-            await navigator.clipboard.writeText(
-                generatedText
-            );
-
-            alert("コピーしました。");
-
-        }
-        catch (error) {
-
-            const output =
-                document.getElementById("output");
-
-            output.select();
-
-            document.execCommand("copy");
-
-            alert("コピーしました。");
-
-        }
-
-    });
-
-
-// ----------------------------------------
+// ==================================================
 // ダウンロード
-// ----------------------------------------
+// ==================================================
 
 document
     .getElementById("download")
-    .addEventListener("click", () => {
+    .addEventListener(
+        "click",
+        () => {
 
-        if (!generatedText) {
+            if (!generatedText) {
 
-            alert(
-                "先に「生成」を押してください。"
-            );
+                alert(
+                    "先に「生成」を押してください。"
+                );
 
-            return;
+                return;
+
+            }
+
+
+            let filename =
+                document
+                    .getElementById("filename")
+                    .value
+                    .trim();
+
+
+            // ファイル名が空欄なら自動命名
+            if (!filename) {
+
+                filename =
+                    "anki_import.txt";
+
+            }
+
+
+            // .txtがなければ追加
+            if (
+                !filename
+                    .toLowerCase()
+                    .endsWith(".txt")
+            ) {
+
+                filename += ".txt";
+
+            }
+
+
+            /*
+                UTF-8 BOM
+            */
+
+            const bom =
+                "\uFEFF";
+
+
+            const blob =
+                new Blob(
+                    [
+                        bom +
+                        generatedText
+                    ],
+                    {
+                        type:
+                            "text/plain;charset=utf-8"
+                    }
+                );
+
+
+            const url =
+                URL.createObjectURL(blob);
+
+
+            const a =
+                document.createElement("a");
+
+
+            a.href =
+                url;
+
+
+            a.download =
+                filename;
+
+
+            document.body.appendChild(a);
+
+
+            a.click();
+
+
+            document.body.removeChild(a);
+
+
+            URL.revokeObjectURL(url);
 
         }
+    );
 
 
-        let filename =
-            document
-                .getElementById("filename")
-                .value
-                .trim();
-
-
-        // ファイル名が空欄なら自動命名
-        if (!filename) {
-
-            filename =
-                "anki_import.txt";
-
-        }
-
-
-        if (
-            !filename
-                .toLowerCase()
-                .endsWith(".txt")
-        ) {
-
-            filename += ".txt";
-
-        }
-
-
-        /*
-            UTF-8 BOM
-        */
-
-        const bom =
-            "\uFEFF";
-
-
-        const blob =
-            new Blob(
-                [bom + generatedText],
-                {
-                    type:
-                        "text/plain;charset=utf-8"
-                }
-            );
-
-
-        const url =
-            URL.createObjectURL(blob);
-
-
-        const a =
-            document.createElement("a");
-
-
-        a.href = url;
-
-        a.download = filename;
-
-        document.body.appendChild(a);
-
-        a.click();
-
-        document.body.removeChild(a);
-
-
-        URL.revokeObjectURL(url);
-
-    });
-
-
-// ----------------------------------------
+// ==================================================
 // 生成ボタン
-// ----------------------------------------
+// ==================================================
 
 document
     .getElementById("generate")
-    .addEventListener("click", generate);
+    .addEventListener(
+        "click",
+        generate
+    );
 
 </script>
 
