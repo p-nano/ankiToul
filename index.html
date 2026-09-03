@@ -1052,7 +1052,12 @@ input[type="text"].search-input {
 }
 
 
-.study-ai-button { position:absolute; z-index:7; top:16px; left:16px; min-width:68px; height:38px; padding:0 12px; border:none; border-radius:12px; background:var(--button-background); color:var(--text); font-weight:700; }
+.study-word-tools { position:absolute; z-index:7; top:16px; left:16px; display:flex; gap:8px; }
+.study-ai-button, .study-core-button { position:relative; min-width:68px; height:38px; padding:0 12px; border:none; border-radius:12px; background:var(--button-background); color:var(--text); font-weight:700; }
+.study-core-button { min-width:54px; }
+.core-answer { position:relative; z-index:6; margin-top:18px; padding:10px 14px; border-radius:12px; background:var(--button-background); color:var(--text); font-size:16px; line-height:1.5; white-space:pre-wrap; text-align:left; width:100%; max-width:420px; }
+.core-answer::before { content:"核心"; display:block; margin-bottom:3px; color:var(--secondary); font-size:12px; font-weight:700; }
+
 .ai-modal-overlay { display:none; position:fixed; inset:0; z-index:30; background:rgba(0,0,0,.5); align-items:center; justify-content:center; padding:20px; }
 .ai-modal-overlay.show { display:flex; }
 .ai-modal { width:100%; max-width:620px; max-height:80dvh; overflow:auto; background:var(--card); color:var(--text); border-radius:22px; padding:20px; }
@@ -1061,7 +1066,7 @@ input[type="text"].search-input {
 .ai-modal-close { width:38px; height:38px; border:none; border-radius:12px; background:var(--button-background); color:var(--text); font-size:24px; }
 .ai-word-label { margin-top:10px; font-size:14px; color:var(--secondary); font-weight:700; }
 .ai-result { white-space:pre-wrap; line-height:1.65; margin-top:14px; min-height:120px; padding:14px; border-radius:14px; background:var(--button-background); }
-@media (max-width:500px) { .study-ai-button { top:14px; left:14px; } }
+@media (max-width:500px) { .study-word-tools { top:14px; left:14px; } }
 </style>
 </head><body><div id="homeScreen"><div class="home-container"><h1 class="header-title">今日の学習</h1><div class="header-date" id="todayDate"></div><div class="home-card"><h2 class="home-card-title">今日のメニュー</h2><div class="today-range" id="todayRange">--</div><div class="today-info" id="todaySet">--</div><div class="today-info" id="todayCount">--</div><div class="today-info" id="todayExtraReview" style="display:none;"></div></div><div class="home-card"><button class="primary-button" id="startStudyButton">
 今日の単語を覚える
@@ -1085,7 +1090,7 @@ input[type="text"].search-input {
 </div>
 <textarea id="wordDataInput" class="data-textarea" placeholder="1　change　変える&#10;2　learn　学ぶ"></textarea>
 <div class="button-row"><button class="secondary-button" id="importWordsButton">単語データを読み込む</button><button class="danger-button" id="clearWordsButton">全データを削除</button></div><div class="button-row"><button class="secondary-button" id="manageWordsButton">保存済みの単語を編集・削除する</button></div><div class="save-message" id="importMessage"></div></div><div class="setting-card"><h2 class="setting-title">データのバックアップ</h2><div class="setting-description">
-単語データと設定をまとめたバックアップ文字列を作成できます。機種変更やブラウザ変更の前に文字列をコピーして保存しておき、復元欄に貼り付けることで元に戻せます。
+単語データ・設定・各単語に保存した「核心」とAI回答をまとめたバックアップ文字列を作成できます。機種変更やブラウザ変更の前に文字列をコピーして保存しておき、復元欄に貼り付けることで元に戻せます。
 </div><div class="button-row"><button class="secondary-button" id="createBackupButton">バックアップ文字列を作成</button></div>
 <textarea id="backupOutput" class="data-textarea" readonly placeholder="ここにバックアップ文字列が表示されます"></textarea>
 <div class="button-row"><button class="secondary-button" id="copyBackupButton">コピーする</button></div><div class="setting-description" style="margin-top: 20px;">
@@ -1125,7 +1130,7 @@ ONにすると、同じ範囲を2回目以降に学習する時、「うろ覚�
 通常は単語をタップして答えを確認します。4択にすると、英単語に対する意味を4つの選択肢から選ぶ形式で練習できます。
 </div><div class="setting-row"><span>形式</span><select id="practiceModeSetting"><option value="flip" selected>通常（タップしてめくる）</option><option value="choice4">4択（選択式）</option></select></div></div><div class="setting-card"><h2 class="setting-title">出題順</h2><div class="setting-row"><span>ランダムにする</span><select id="practiceRandomSetting"><option value="true">ON</option><option value="false" selected>OFF</option></select></div></div><div class="setting-card"><h2 class="setting-title">練習する単語数</h2><div class="setting-description">
 対象に含まれる単語数の範囲で指定できます。
-</div><div class="setting-row"><span>単語数</span><div><input type="number" id="practiceCountInput" min="1" step="1"><span>語</span></div></div></div><div class="home-card" style="padding: 0; background: transparent; margin-top: 0;"><button class="primary-button" id="practiceStartButton">練習を始める</button></div></div></div><div id="studyScreen"><div class="self-review-overlay" id="selfReviewOverlay"><div class="sr-zone" data-position="topLeft"></div><div class="sr-zone" data-position="topCenter"></div><div class="sr-zone" data-position="topRight"></div><div class="sr-zone" data-position="middleLeft"></div><div class="sr-zone" data-position="center"></div><div class="sr-zone" data-position="middleRight"></div><div class="sr-zone" data-position="bottomLeft"></div><div class="sr-zone" data-position="bottomCenter"></div><div class="sr-zone" data-position="bottomRight"></div></div><div class="study-top-bar"><button class="study-back-button" id="studyBackButton">‹ ホーム</button><div class="study-top-right"><div class="study-progress" id="studyProgress">0 / 0</div><button class="study-icon-button" id="studyPrevButton" title="1つ前のカードに戻る">⟲</button><button class="study-icon-button" id="studyEditButton" title="この単語データを編集">✎</button></div></div><div class="card-area"><div class="word-card" id="wordCard"><div class="extra-review-badge" id="extraReviewBadge" style="display:none;">＋α復習</div><button class="replay-audio-button" id="replayAudioButton" title="音声をもう一度再生" aria-label="音声をもう一度再生"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg></button><button class="study-ai-button" id="studyAiButton" type="button" title="この単語の語源をAIに聞く">語源AI</button><div class="word" id="wordText">--</div><div class="meaning" id="meaningText">--</div><div class="tap-hint" id="tapHint">タップして答えを見る</div></div></div><div class="answer-mark" id="answerMark"></div><div class="choice-area" id="choiceArea"><div class="choice-options" id="choiceOptions"></div></div><div class="answer-area"><button class="answer-button answer-again" data-answer="again">もう一度</button><button class="answer-button answer-fuzzy" data-answer="fuzzy">うろ覚え</button><button class="answer-button answer-perfect" data-answer="perfect">完璧</button></div><div class="edit-modal-overlay" id="editModalOverlay"><div class="edit-modal"><h3>単語データを編集</h3><div class="edit-modal-id" id="editModalId">#--</div><label>英単語</label><input type="text" id="editModalWord"><label>日本語訳</label><input type="text" id="editModalMeaning"><label>暗記状況</label><select id="editModalStatus"><option value="unlearned">未暗記</option><option value="fuzzy">うろ覚え</option><option value="perfect">完璧</option><option value="mastered">覚えた</option></select><div class="edit-modal-buttons"><button class="edit-modal-cancel" id="editModalCancel">キャンセル</button><button class="edit-modal-save" id="editModalSave">保存</button></div></div></div></div><div class="ai-modal-overlay" id="aiModalOverlay"><div class="ai-modal"><div class="ai-modal-header"><h3>語源をAIに聞く</h3><button type="button" class="ai-modal-close" id="aiModalClose" aria-label="閉じる">×</button></div><div class="ai-word-label" id="aiWordLabel">--</div><div class="ai-result" id="aiResult">ここに語源の解説が表示されます。</div><div class="button-row"><button class="secondary-button" id="askAiButton">AIに聞く</button><button class="secondary-button" id="openChatGptButton">ChatGPTで聞く</button></div></div></div><div id="completeScreen"><div class="complete-title" id="completeTitle">今日の学習完了</div><div class="complete-text" id="completeText"></div><div id="completeHomeButtonWrap" style="width:100%; max-width:400px;"><button class="primary-button" id="completeHomeButton">ホームへ戻る</button></div><div id="completePracticeButtons" style="display:none; width:100%; max-width:400px; flex-direction:column; gap:10px;"><button class="primary-button" id="applyPracticeButton">この結果を単語データに反映する</button><button class="secondary-button" id="discardPracticeButton">反映せずに破棄する</button></div></div>
+</div><div class="setting-row"><span>単語数</span><div><input type="number" id="practiceCountInput" min="1" step="1"><span>語</span></div></div></div><div class="home-card" style="padding: 0; background: transparent; margin-top: 0;"><button class="primary-button" id="practiceStartButton">練習を始める</button></div></div></div><div id="studyScreen"><div class="self-review-overlay" id="selfReviewOverlay"><div class="sr-zone" data-position="topLeft"></div><div class="sr-zone" data-position="topCenter"></div><div class="sr-zone" data-position="topRight"></div><div class="sr-zone" data-position="middleLeft"></div><div class="sr-zone" data-position="center"></div><div class="sr-zone" data-position="middleRight"></div><div class="sr-zone" data-position="bottomLeft"></div><div class="sr-zone" data-position="bottomCenter"></div><div class="sr-zone" data-position="bottomRight"></div></div><div class="study-top-bar"><button class="study-back-button" id="studyBackButton">‹ ホーム</button><div class="study-top-right"><div class="study-progress" id="studyProgress">0 / 0</div><button class="study-icon-button" id="studyPrevButton" title="1つ前のカードに戻る">⟲</button><button class="study-icon-button" id="studyEditButton" title="この単語データを編集">✎</button></div></div><div class="card-area"><div class="word-card" id="wordCard"><div class="extra-review-badge" id="extraReviewBadge" style="display:none;">＋α復習</div><button class="replay-audio-button" id="replayAudioButton" title="音声をもう一度再生" aria-label="音声をもう一度再生"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg></button><div class="study-word-tools"><button class="study-ai-button" id="studyAiButton" type="button" title="この単語の語源をAIに聞く">語源AI</button><button class="study-core-button" id="studyCoreButton" type="button" title="この単語の核心を入力する">核心</button></div><div class="word" id="wordText">--</div><div class="meaning" id="meaningText">--</div><div class="core-answer" id="coreAnswer" style="display:none;"></div><div class="tap-hint" id="tapHint">タップして答えを見る</div></div></div><div class="answer-mark" id="answerMark"></div><div class="choice-area" id="choiceArea"><div class="choice-options" id="choiceOptions"></div></div><div class="answer-area"><button class="answer-button answer-again" data-answer="again">もう一度</button><button class="answer-button answer-fuzzy" data-answer="fuzzy">うろ覚え</button><button class="answer-button answer-perfect" data-answer="perfect">完璧</button></div><div class="edit-modal-overlay" id="editModalOverlay"><div class="edit-modal"><h3>単語データを編集</h3><div class="edit-modal-id" id="editModalId">#--</div><label>英単語</label><input type="text" id="editModalWord"><label>日本語訳</label><input type="text" id="editModalMeaning"><label>核心</label><input type="text" id="editModalCore"><label>暗記状況</label><select id="editModalStatus"><option value="unlearned">未暗記</option><option value="fuzzy">うろ覚え</option><option value="perfect">完璧</option><option value="mastered">覚えた</option></select><div class="edit-modal-buttons"><button class="edit-modal-cancel" id="editModalCancel">キャンセル</button><button class="edit-modal-save" id="editModalSave">保存</button></div></div></div></div><div class="ai-modal-overlay" id="aiModalOverlay"><div class="ai-modal"><div class="ai-modal-header"><h3>語源をAIに聞く</h3><button type="button" class="ai-modal-close" id="aiModalClose" aria-label="閉じる">×</button></div><div class="ai-word-label" id="aiWordLabel">--</div><div class="ai-result" id="aiResult">ここに語源の解説が表示されます。</div><div class="button-row"><button class="secondary-button" id="askAiButton">AIに聞く</button><button class="secondary-button" id="openChatGptButton">ChatGPTで聞く</button></div></div></div><div id="completeScreen"><div class="complete-title" id="completeTitle">今日の学習完了</div><div class="complete-text" id="completeText"></div><div id="completeHomeButtonWrap" style="width:100%; max-width:400px;"><button class="primary-button" id="completeHomeButton">ホームへ戻る</button></div><div id="completePracticeButtons" style="display:none; width:100%; max-width:400px; flex-direction:column; gap:10px;"><button class="primary-button" id="applyPracticeButton">この結果を単語データに反映する</button><button class="secondary-button" id="discardPracticeButton">反映せずに破棄する</button></div></div>
 <script>
 
 
@@ -1203,7 +1208,13 @@ function getWords() {
     const data = localStorage.getItem(WORD_STORAGE_KEY);
     if (!data) return [];
     try {
-        return JSON.parse(data);
+        return JSON.parse(data).map(word => ({
+            ...word,
+            core: word.core || "",
+            aiPrompt: word.aiPrompt || "",
+            aiAnswer: word.aiAnswer || "",
+            aiAskedAt: word.aiAskedAt || null
+        }));
     } catch {
         return [];
     }
@@ -1241,6 +1252,10 @@ function createBlankWord(id, word, meaning) {
         id,
         word: word || "",
         meaning: meaning || "",
+        core: "",
+        aiPrompt: "",
+        aiAnswer: "",
+        aiAskedAt: null,
         status: "unlearned",
         lastReviewed: null,
         nextReview: null,
@@ -1344,86 +1359,43 @@ function base64ToBytes(base64) {
     return bytes;
 }
 
-function compactBackupPayload() {
+function encodeBackup(text) {
+    return btoa(unescape(encodeURIComponent(text)));
+}
+
+function decodeBackup(raw) {
+    return decodeURIComponent(escape(atob(raw)));
+}
+
+function createBackupPayload() {
     const words = getWords();
     const settings = getSettings();
-    // APIキーはバックアップに含めない。キーを文字列として持ち運ぶ必要はないため。
     const safeSettings = { ...settings };
     delete safeSettings.aiApiKey;
+
     return {
-        v: 2,
-        w: words.map(word => [
-            word.id,
-            word.word || "",
-            word.meaning || "",
-            word.status || "unlearned",
-            word.lastReviewed ?? null,
-            word.nextReview ?? null,
-            word.reviewCount || 0,
-            word.stability ?? null,
-            word.difficulty ?? null,
-            word.dueDate ?? null
-        ]),
-        s: safeSettings,
-        d: getStartDate()
+        v: 3,
+        words,
+        settings: safeSettings,
+        startDate: getStartDate()
     };
 }
 
-function expandCompactBackupPayload(payload) {
-    if (!payload || !Array.isArray(payload.w) || !payload.s) throw new Error("invalid compact backup");
-    const words = payload.w.map(item => ({
-        id: Number(item[0]),
-        word: item[1] || "",
-        meaning: item[2] || "",
-        status: item[3] || "unlearned",
-        lastReviewed: item[4] ?? null,
-        nextReview: item[5] ?? null,
-        reviewCount: Number(item[6]) || 0,
-        stability: item[7] ?? null,
-        difficulty: item[8] ?? null,
-        dueDate: item[9] ?? null
-    }));
-    return { words, settings: payload.s, startDate: payload.d || "" };
-}
-
-async function encodeCompressedBackup(text) {
-    const bytes = new TextEncoder().encode(text);
-    if ("CompressionStream" in window) {
-        const stream = new Blob([bytes]).stream().pipeThrough(new CompressionStream("gzip"));
-        const compressed = new Uint8Array(await new Response(stream).arrayBuffer());
-        return "EW2:" + bytesToBase64(compressed);
-    }
-    return "EJ2:" + bytesToBase64(bytes);
-}
-
-async function decodeCompressedBackup(raw) {
-    if (raw.startsWith("EW2:")) {
-        const compressed = base64ToBytes(raw.slice(4));
-        if (!("DecompressionStream" in window)) throw new Error("gzip unsupported");
-        const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream("gzip"));
-        return new TextDecoder().decode(await new Response(stream).arrayBuffer());
-    }
-    if (raw.startsWith("EJ2:")) {
-        return new TextDecoder().decode(base64ToBytes(raw.slice(4)));
-    }
-    const json = decodeURIComponent(escape(atob(raw)));
-    return json;
-}
-
-async function createBackupString() {
-    const payload = compactBackupPayload();
+function createBackupString() {
+    const payload = createBackupPayload();
     const json = JSON.stringify(payload);
-    const encoded = await encodeCompressedBackup(json);
+    const encoded = encodeBackup(json);
+
     document.getElementById("backupOutput").value = encoded;
     document.getElementById("backupMessage").textContent =
-        `軽量バックアップを作成しました（元JSON ${json.length.toLocaleString()}文字 → ${encoded.length.toLocaleString()}文字）。`;
+        `バックアップを作成しました（${json.length.toLocaleString()}文字）。`;
 }
 
-document.getElementById("createBackupButton").addEventListener("click", async () => {
+document.getElementById("createBackupButton").addEventListener("click", () => {
     const button = document.getElementById("createBackupButton");
     button.disabled = true;
     try {
-        await createBackupString();
+        createBackupString();
     } finally {
         button.disabled = false;
     }
@@ -1463,11 +1435,8 @@ async function restoreFromBackup() {
     }
     if (!confirm("現在保存されているデータを上書きして復元します。よろしいですか？")) return;
     try {
-        const json = await decodeCompressedBackup(raw);
+        const json = decodeBackup(raw);
         let payload = JSON.parse(json);
-        if (payload && payload.v === 2 && Array.isArray(payload.w)) {
-            payload = expandCompactBackupPayload(payload);
-        }
         if (!payload || !Array.isArray(payload.words) || !payload.settings) throw new Error("invalid backup data");
         saveWords(payload.words);
         const currentSettings = getSettings();
@@ -2786,6 +2755,8 @@ function showCurrentCard() {
 
         document.getElementById("wordText").textContent = "少し待ってね";
         document.getElementById("meaningText").textContent = "";
+        document.getElementById("coreAnswer").textContent = "";
+        document.getElementById("coreAnswer").style.display = "none";
         document.getElementById("tapHint").textContent = "「もう一度」の単語がまもなく表示されます";
 
         waitingTimer = setTimeout(showCurrentCard, delay + 50);
@@ -2805,6 +2776,9 @@ function displayCard(word) {
 
     document.getElementById("wordText").textContent = word.word;
     document.getElementById("meaningText").textContent = word.meaning;
+    const coreEl = document.getElementById("coreAnswer");
+    coreEl.textContent = word.core || "";
+    coreEl.style.display = "none";
     document.getElementById("tapHint").textContent = "タップして答えを見る";
 
     document.getElementById("extraReviewBadge").style.display = word.isExtraReview ? "block" : "none";
@@ -2907,6 +2881,14 @@ function handleCardZoneTap(position) {
 
     if (!card.classList.contains("show-answer")) {
         card.classList.add("show-answer");
+        const coreEl = document.getElementById("coreAnswer");
+        if (currentWord && currentWord.core) {
+            coreEl.textContent = currentWord.core;
+            coreEl.style.display = "block";
+        } else {
+            coreEl.textContent = "";
+            coreEl.style.display = "none";
+        }
         document.getElementById("tapHint").textContent = "回答を選択してください";
         if (currentWord) speakJapanese(currentWord.meaning);
         return;
@@ -3047,6 +3029,7 @@ function openEditModal() {
     document.getElementById("editModalId").textContent = `#${target.id}`;
     document.getElementById("editModalWord").value = target.word;
     document.getElementById("editModalMeaning").value = target.meaning;
+    document.getElementById("editModalCore").value = target.core || "";
     document.getElementById("editModalStatus").value = target.status || "unlearned";
 
     document.getElementById("editModalOverlay").classList.add("show");
@@ -3072,6 +3055,7 @@ function saveEditModal() {
 
     target.word = document.getElementById("editModalWord").value;
     target.meaning = document.getElementById("editModalMeaning").value;
+    target.core = document.getElementById("editModalCore").value.trim();
     target.status = document.getElementById("editModalStatus").value;
 
     saveWords(words);
@@ -3080,6 +3064,9 @@ function saveEditModal() {
     currentWord = { ...target };
     document.getElementById("wordText").textContent = target.word;
     document.getElementById("meaningText").textContent = target.meaning;
+    document.getElementById("coreAnswer").textContent = target.core || "";
+    document.getElementById("coreAnswer").style.display =
+        document.getElementById("wordCard").classList.contains("show-answer") && target.core ? "block" : "none";
 
     closeEditModal();
 }
@@ -3295,6 +3282,21 @@ async function askAiForCurrentWord() {
         const text = extractApiText(data);
         if (!text) throw new Error("empty response");
         resultEl.textContent = text;
+
+        const words = getWords();
+        const target = words.find(word => word.id === currentWord.id);
+        if (target) {
+            target.aiPrompt = getAiPrompt(currentWord);
+            target.aiAnswer = text;
+            target.aiAskedAt = new Date().toISOString();
+            saveWords(words);
+            currentWord = {
+                ...currentWord,
+                aiPrompt: target.aiPrompt,
+                aiAnswer: target.aiAnswer,
+                aiAskedAt: target.aiAskedAt
+            };
+        }
     } catch (error) {
         console.error(error);
         resultEl.textContent = "API呼び出しに失敗しました。API URL・キー・CORS設定を確認してください。APIが使えない場合は「ChatGPTで聞く」を利用できます。";
@@ -3304,13 +3306,42 @@ async function askAiForCurrentWord() {
 function openAiModal() {
     if (!currentWord) return;
     document.getElementById("aiWordLabel").textContent = `${currentWord.word} ＝ ${currentWord.meaning || ""}`;
-    document.getElementById("aiResult").textContent = "語源を調べる準備ができました。";
+    document.getElementById("aiResult").textContent = currentWord.aiAnswer || "語源を調べる準備ができました。";
     document.getElementById("aiModalOverlay").classList.add("show");
 }
 
 function closeAiModal() {
     document.getElementById("aiModalOverlay").classList.remove("show");
 }
+
+document.getElementById("studyCoreButton").addEventListener("click", event => {
+    event.stopPropagation();
+    if (!currentWord) return;
+
+    const value = window.prompt(
+        `「${currentWord.word}」の核心を入力してください。`,
+        currentWord.core || ""
+    );
+
+    if (value === null) return;
+
+    const words = getWords();
+    const target = words.find(word => word.id === currentWord.id);
+    if (!target) return;
+
+    target.core = value.trim();
+    saveWords(words);
+    currentWord = { ...currentWord, core: target.core };
+
+    const coreEl = document.getElementById("coreAnswer");
+    if (document.getElementById("wordCard").classList.contains("show-answer") && target.core) {
+        coreEl.textContent = target.core;
+        coreEl.style.display = "block";
+    } else if (!target.core) {
+        coreEl.textContent = "";
+        coreEl.style.display = "none";
+    }
+});
 
 document.getElementById("studyAiButton").addEventListener("click", event => {
     event.stopPropagation();
