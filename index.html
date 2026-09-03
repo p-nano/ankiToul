@@ -1,873 +1,3682 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Anki 単語帳一括変換ツール</title>
-
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport"
+content="width=device-width,
+initial-scale=1.0,
+viewport-fit=cover"><title>英単語暗記</title>
 <style>
+
+
+
 * {
     box-sizing: border-box;
 }
 
+html,
 body {
     margin: 0;
-    background: #f4f4f4;
-    color: #222;
+    padding: 0;
+
+    width: 100%;
+    min-height: 100%;
+
     font-family:
         -apple-system,
         BlinkMacSystemFont,
-        "Segoe UI",
+        "Helvetica Neue",
         sans-serif;
+
+    background: var(--background);
+    color: var(--text);
+
+    transition:
+        background 0.2s,
+        color 0.2s;
 }
 
-.container {
-    max-width: 1000px;
-    margin: auto;
-    padding: 24px;
-}
-
-h1 {
-    margin-top: 0;
-}
-
-.panel {
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 18px;
-}
-
+button,
+input,
+select,
 textarea {
+    font-family: inherit;
+}
+
+
+
+:root {
+    --background: #f5f5f7;
+    --card: #ffffff;
+    --text: #111111;
+    --secondary: #777777;
+    --button-background: #e5e5ea;
+    --border: #d1d1d6;
+    --accent: #007aff;
+    --danger: #ff3b30;
+    --perfect-color: #34c759;
+    --fuzzy-color: #ffcc00;
+    --unlearned-color: #d1d1d6;
+    --mastered-color: #5856d6;
+}
+
+body.dark {
+    --background: #000000;
+    --card: #1c1c1e;
+    --text: #ffffff;
+    --secondary: #999999;
+    --button-background: #2c2c2e;
+    --border: #3a3a3c;
+    --unlearned-color: #3a3a3c;
+}
+
+
+@media (prefers-color-scheme: dark) {
+    body.theme-system {
+        --background: #000000;
+        --card: #1c1c1e;
+        --text: #ffffff;
+        --secondary: #999999;
+        --button-background: #2c2c2e;
+        --border: #3a3a3c;
+        --unlearned-color: #3a3a3c;
+    }
+}
+
+
+
+#homeScreen {
+    min-height: 100dvh;
+    padding: 20px 16px 40px;
+}
+
+.home-container {
     width: 100%;
-    min-height: 300px;
-    padding: 12px;
-    border: 1px solid #ccc;
+    max-width: 600px;
+    margin: auto;
+}
+
+.header-title {
+    margin: 0;
+    font-size: 28px;
+}
+
+.header-date {
+    margin-top: 5px;
+    color: var(--secondary);
+}
+
+.home-card {
+    margin-top: 16px;
+    padding: 20px;
+    border-radius: 20px;
+    background: var(--card);
+}
+
+.home-card-title {
+    margin: 0 0 15px;
+}
+
+.today-range {
+    font-size: 27px;
+    font-weight: 700;
+}
+
+.today-info {
+    margin-top: 7px;
+    color: var(--secondary);
+}
+
+
+
+.primary-button,
+.secondary-button {
+    width: 100%;
+    min-height: 55px;
+    border: none;
+    border-radius: 15px;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.primary-button {
+    background: var(--text);
+    color: var(--background);
+}
+
+.primary-button:disabled {
+    opacity: 0.4;
+}
+
+.secondary-button {
+    background: var(--button-background);
+    color: var(--text);
+}
+
+.danger-button {
+    background: var(--danger);
+    color: #ffffff;
+}
+
+.button-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.button-row .secondary-button,
+.button-row .danger-button {
+    flex: 1;
+}
+
+
+
+.progress-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.progress-header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.progress-toggle-button {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 10px;
+    background: var(--button-background);
+    color: var(--text);
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.progress-circle {
+    --mastered: 0deg;
+    --perfect: 0deg;
+    --fuzzy: 0deg;
+    width: 220px;
+    height: 220px;
+    margin: 20px auto;
+    border-radius: 50%;
+    background: conic-gradient(
+        var(--mastered-color) 0deg,
+        var(--mastered-color) var(--mastered),
+        var(--perfect-color) var(--mastered),
+        var(--perfect-color) calc(var(--mastered) + var(--perfect)),
+        var(--fuzzy-color) calc(var(--mastered) + var(--perfect)),
+        var(--fuzzy-color) calc(var(--mastered) + var(--perfect) + var(--fuzzy)),
+        var(--unlearned-color) calc(var(--mastered) + var(--perfect) + var(--fuzzy)),
+        var(--unlearned-color) 360deg
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.progress-circle-inner {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    background: var(--card);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.progress-number {
+    font-size: 34px;
+    font-weight: 700;
+}
+
+.progress-legend {
+    margin-top: 4px;
+}
+
+
+
+.bar-chart-scroll {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 16px 4px 8px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.bar-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+    width: 38px;
+}
+
+.bar-track {
+    width: 22px;
+    height: 150px;
     border-radius: 8px;
-    resize: vertical;
-    font-family: monospace;
+    background: var(--unlearned-color);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.bar-segment {
+    width: 100%;
+}
+
+.bar-segment-unlearned {
+    background: var(--unlearned-color);
+}
+
+.bar-segment-fuzzy {
+    background: var(--fuzzy-color);
+}
+
+.bar-segment-perfect {
+    background: var(--perfect-color);
+}
+
+.bar-segment-mastered {
+    background: var(--mastered-color);
+}
+
+.bar-label {
+    margin-top: 6px;
+    font-size: 10px;
+    color: var(--secondary);
+    text-align: center;
+    line-height: 1.3;
+    white-space: pre-line;
+}
+
+.bar-chart-empty {
+    color: var(--secondary);
+    font-size: 14px;
+    text-align: center;
+    padding: 20px 0;
+}
+
+
+
+#settingsScreen {
+    display: none;
+    min-height: 100dvh;
+    padding: 20px 16px 40px;
+}
+
+.settings-container {
+    max-width: 600px;
+    margin: auto;
+}
+
+.settings-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.settings-back {
+    border: none;
+    background: transparent;
+    color: var(--text);
+    font-size: 17px;
+    padding: 10px 5px;
+}
+
+.settings-title {
+    margin-left: 10px;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+
+
+.setting-card {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
+.setting-title {
+    margin: 0 0 15px;
+    font-size: 18px;
+}
+
+.setting-description {
+    margin-top: -7px;
+    margin-bottom: 15px;
+    color: var(--secondary);
     font-size: 14px;
     line-height: 1.5;
 }
 
-input {
+.setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    min-height: 50px;
+}
+
+.setting-row + .setting-row {
+    border-top: 1px solid var(--border);
+}
+
+.checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    font-size: 15px;
+}
+
+.checkbox-row input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+}
+
+.chunk-checkbox-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+.chunk-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--button-background);
+    font-size: 13px;
+}
+
+.chunk-checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+
+
+.range-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+input[type="range"] {
+    flex: 1;
+}
+
+.range-value {
+    width: 60px;
+    text-align: right;
+    font-weight: 700;
+}
+
+
+
+select {
+    min-width: 180px;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--button-background);
+    color: var(--text);
+}
+
+
+
+input[type="number"] {
+    width: 100px;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--button-background);
+    color: var(--text);
+    font-size: 16px;
+    text-align: right;
+}
+
+
+
+textarea.data-textarea {
+    width: 100%;
+    min-height: 160px;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--button-background);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+    resize: vertical;
+}
+
+
+
+.self-review-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 15px;
+}
+
+.self-review-cell {
+    min-height: 90px;
+    padding: 8px;
+    border-radius: 12px;
+    background: var(--button-background);
+}
+
+.self-review-cell-label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--secondary);
+    font-size: 11px;
+}
+
+.self-review-cell select {
+    width: 100%;
+    min-width: 0;
+    padding: 6px;
+    font-size: 12px;
+}
+
+
+
+.save-message {
+    text-align: center;
+    color: var(--perfect-color);
+    font-size: 14px;
+    min-height: 20px;
+}
+
+
+
+#studyScreen {
+    display: none;
+    position: relative;
+    width: 100%;
+    height: 100dvh;
+    flex-direction: column;
+}
+
+.study-top-bar {
+    height: 70px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    padding: env(safe-area-inset-top) 18px 0 18px;
+}
+
+.study-back-button {
+    position: relative;
+    z-index: 6;
+    border: none;
+    background: transparent;
+    color: var(--text);
+    font-size: 17px;
+}
+
+.study-top-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.study-progress {
+    color: var(--secondary);
+    font-size: 14px;
+}
+
+.study-icon-button {
+    position: relative;
+    z-index: 6;
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 12px;
+    background: var(--button-background);
+    color: var(--text);
+    font-size: 16px;
+}
+
+.card-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.word-card {
+    position: relative;
+    width: 100%;
+    max-width: 520px;
+    min-height: 360px;
+    border-radius: 28px;
+    background: var(--card);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    text-align: center;
+}
+
+.replay-audio-button {
+    position: absolute;
+    z-index: 6;
+    top: 16px;
+    right: 16px;
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 50%;
+    background: var(--button-background);
+    color: var(--text);
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.extra-review-badge {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 6;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: var(--mastered-color);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.word {
+    position: relative;
+    z-index: 6;
+    font-size: clamp(36px, 10vw, 64px);
+    font-weight: 700;
+    -webkit-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
+}
+
+.meaning {
+    position: relative;
+    z-index: 6;
+    display: none;
+    margin-top: 30px;
+    color: var(--secondary);
+    font-size: clamp(22px, 6vw, 34px);
+    -webkit-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
+}
+
+.word-card.show-answer .meaning {
+    display: block;
+}
+
+.tap-hint {
+    position: absolute;
+    bottom: 28px;
+    color: #999;
+    font-size: 14px;
+}
+
+.answer-area {
+    display: flex;
+    gap: 10px;
+    padding: 10px 18px calc(18px + env(safe-area-inset-bottom)) 18px;
+}
+
+.answer-button {
+    position: relative;
+    z-index: 6;
+    flex: 1;
+    min-height: 58px;
+    border: none;
+    border-radius: 16px;
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.answer-again {
+    background: var(--danger);
+    color: white;
+}
+
+.answer-fuzzy {
+    background: var(--fuzzy-color);
+    color: #111;
+}
+
+.answer-perfect {
+    background: var(--perfect-color);
+    color: white;
+}
+
+
+
+.self-review-overlay {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    z-index: 5;
+}
+
+.sr-zone {
+    -webkit-tap-highlight-color: transparent;
+}
+
+
+
+.answer-mark {
+    position: absolute;
+    top: 78px;
+    left: 50%;
+    transform: translate(-50%, -6px) scale(0.9);
+    z-index: 10;
+    pointer-events: none;
+
+    padding: 7px 16px;
+    border-radius: 999px;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 7px;
+
+    color: #ffffff;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+
+    opacity: 0;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.answer-mark.show {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+}
+
+.answer-mark .mark-icon {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.answer-mark .mark-text {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.mark-again {
+    background: var(--danger);
+}
+
+.mark-fuzzy {
+    background: var(--fuzzy-color);
+    color: #111111;
+}
+
+
+
+.choice-area {
+    display: none;
+    padding: 0 18px calc(18px + env(safe-area-inset-bottom)) 18px;
+}
+
+.choice-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+    min-height: 0;
+    justify-content: center;
+}
+
+.choice-button {
+    position: relative;
+    z-index: 6;
+    flex: 1;
+    min-height: 40px;
+    max-height: 76px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 16px;
+    background: var(--button-background);
+    color: var(--text);
+    font-weight: 700;
+    font-size: 16px;
+    text-align: left;
+    display: flex;
+    align-items: center;
+}
+
+.choice-button.correct {
+    background: var(--perfect-color);
+    color: #ffffff;
+}
+
+.choice-button.incorrect {
+    background: var(--danger);
+    color: #ffffff;
+}
+
+.choice-button:disabled {
+    opacity: 1;
+}
+
+.choice-dontknow {
+    flex: 0 0 auto;
+    min-height: 40px;
+    max-height: 48px;
+    margin-top: 2px;
+    background: transparent;
+    border: 2px dashed var(--border);
+    color: var(--secondary);
+    justify-content: center;
+    text-align: center;
+}
+
+.choice-button.selected-dontknow {
+    background: var(--button-background);
+    border-style: solid;
+    color: var(--text);
+}
+
+#studyScreen.quiz-mode .answer-area,
+#studyScreen.quiz-mode #tapHint,
+#studyScreen.quiz-mode #selfReviewOverlay {
+    display: none;
+}
+
+
+
+#studyScreen.quiz-mode .card-area {
+    flex: 0 0 auto;
+    padding: 14px 20px 6px;
+}
+
+#studyScreen.quiz-mode .word-card {
+    min-height: auto;
+    width: 100%;
+    max-width: 520px;
+    padding: 16px 60px;
+}
+
+#studyScreen.quiz-mode .word {
+    font-size: clamp(20px, 6vw, 28px);
+}
+
+#studyScreen.quiz-mode .extra-review-badge {
+    top: 10px;
+    left: 10px;
+}
+
+#studyScreen.quiz-mode .replay-audio-button {
+    top: 10px;
+    right: 10px;
+    width: 36px;
+    height: 36px;
+}
+
+#studyScreen.quiz-mode .choice-area {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.mark-perfect {
+    background: var(--perfect-color);
+}
+
+
+
+.edit-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    background: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.edit-modal-overlay.show {
+    display: flex;
+}
+
+.edit-modal {
+    width: 100%;
+    max-width: 400px;
+    background: var(--card);
+    border-radius: 22px;
+    padding: 22px;
+}
+
+.edit-modal h3 {
+    margin: 0 0 5px;
+}
+
+.edit-modal-id {
+    color: var(--secondary);
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+.edit-modal label {
+    display: block;
+    margin: 14px 0 6px;
+    font-size: 13px;
+    color: var(--secondary);
+}
+
+.edit-modal input[type="text"],
+.edit-modal select {
     width: 100%;
     padding: 11px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    font-size: 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--button-background);
+    color: var(--text);
+    font-size: 15px;
 }
 
-label {
-    display: block;
-    font-weight: bold;
-    margin-bottom: 7px;
+.edit-modal-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 22px;
 }
 
-button {
+.edit-modal-buttons button {
+    flex: 1;
+    min-height: 48px;
     border: none;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 15px;
+}
+
+.edit-modal-cancel {
+    background: var(--button-background);
+    color: var(--text);
+}
+
+.edit-modal-save {
+    background: var(--text);
+    color: var(--background);
+}
+
+
+
+#completeScreen {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--background);
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    padding: 20px;
+}
+
+.complete-title {
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.complete-text {
+    white-space: pre-line;
+    color: var(--secondary);
+    margin: 15px 0 30px;
+}
+
+
+
+.word-manage-toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+input[type="text"].search-input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    font-size: 15px;
+}
+
+.word-manage-count {
+    color: var(--secondary);
+    font-size: 13px;
+    margin: 0 2px 12px;
+}
+
+.word-row {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 14px;
+    margin-bottom: 10px;
+}
+
+.word-row-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.word-row-id {
+    flex-shrink: 0;
+    margin-top: 10px;
+    color: var(--secondary);
+    font-size: 12px;
+    min-width: 34px;
+}
+
+.word-row-fields {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.word-row-fields input[type="text"] {
+    width: 100%;
+    padding: 9px 10px;
     border-radius: 8px;
-    padding: 11px 18px;
+    border: 1px solid var(--border);
+    background: var(--button-background);
+    color: var(--text);
     font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-right: 8px;
+}
+
+.word-row-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
     margin-top: 10px;
 }
 
-#generate {
-    background: #222;
-    color: white;
+.word-status-select {
+    min-width: 0;
+    flex: 1;
+    padding: 7px;
+    font-size: 12px;
 }
 
-#copy {
-    background: #1976d2;
-    color: white;
-}
-
-#download {
-    background: #388e3c;
-    color: white;
-}
-
-button:hover {
-    opacity: 0.85;
-}
-
-.info {
-    background: #f7f7f7;
-    padding: 12px;
+.word-delete-button {
+    flex-shrink: 0;
+    background: var(--danger);
+    color: #ffffff;
+    border: none;
     border-radius: 8px;
-    line-height: 1.7;
+    padding: 9px 14px;
+    font-size: 12px;
+    font-weight: 700;
 }
 
-.status {
-    margin-top: 12px;
-    font-weight: bold;
+.empty-message {
+    color: var(--secondary);
+    font-size: 14px;
+    text-align: center;
+    padding: 30px 0;
 }
+
+
+
+@media (max-width: 500px) {
+    .self-review-cell {
+        min-height: 82px;
+    }
+    .self-review-cell select {
+        font-size: 11px;
+    }
+}
+
+
+.study-ai-button { position:absolute; z-index:7; top:16px; left:16px; min-width:68px; height:38px; padding:0 12px; border:none; border-radius:12px; background:var(--button-background); color:var(--text); font-weight:700; }
+.ai-modal-overlay { display:none; position:fixed; inset:0; z-index:30; background:rgba(0,0,0,.5); align-items:center; justify-content:center; padding:20px; }
+.ai-modal-overlay.show { display:flex; }
+.ai-modal { width:100%; max-width:620px; max-height:80dvh; overflow:auto; background:var(--card); color:var(--text); border-radius:22px; padding:20px; }
+.ai-modal-header { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.ai-modal-header h3 { margin:0; }
+.ai-modal-close { width:38px; height:38px; border:none; border-radius:12px; background:var(--button-background); color:var(--text); font-size:24px; }
+.ai-word-label { margin-top:10px; font-size:14px; color:var(--secondary); font-weight:700; }
+.ai-result { white-space:pre-wrap; line-height:1.65; margin-top:14px; min-height:120px; padding:14px; border-radius:14px; background:var(--button-background); }
+@media (max-width:500px) { .study-ai-button { top:14px; left:14px; } }
 </style>
-</head>
-
-<body>
-
-<div class="container">
-
-<h1>Anki 単語帳一括変換ツール</h1>
-
-<div class="panel">
-
-<h2>① 設定</h2>
-
-<label for="deck">デッキ名</label>
-
-<input
-    id="deck"
-    type="text"
-    value=""
-    placeholder="任意：例 ターゲット1200"
->
-
-<br><br>
-
-<label for="filename">ファイル名</label>
-
-<input
-    id="filename"
-    type="text"
-    value=""
-    placeholder="任意：例 target1200_anki.txt"
->
-
+</head><body><div id="homeScreen"><div class="home-container"><h1 class="header-title">今日の学習</h1><div class="header-date" id="todayDate"></div><div class="home-card"><h2 class="home-card-title">今日のメニュー</h2><div class="today-range" id="todayRange">--</div><div class="today-info" id="todaySet">--</div><div class="today-info" id="todayCount">--</div><div class="today-info" id="todayExtraReview" style="display:none;"></div></div><div class="home-card"><button class="primary-button" id="startStudyButton">
+今日の単語を覚える
+</button></div><div class="home-card"><div class="progress-header"><h2 class="home-card-title" id="progressModeLabel">今日の進捗</h2><div class="progress-header-right"><strong id="homeProgressPercent">0%</strong><button class="progress-toggle-button" id="progressToggleButton" title="表示切替">⇄</button></div></div><div id="progressCircleWrap"><div class="progress-circle" id="progressCircle"><div class="progress-circle-inner"><div class="progress-number" id="progressNumber">0%</div><div>習得率</div></div></div><div class="progress-legend">
+覚えた：<strong id="masteredValue">0%</strong></div><div class="progress-legend">
+完璧：<strong id="perfectValue">0%</strong></div><div class="progress-legend">
+うろ覚え：<strong id="fuzzyValue">0%</strong></div><div class="progress-legend">
+未暗記：<strong id="unlearnedValue">0%</strong></div></div><div id="progressBarWrap" style="display:none;"><div class="bar-chart-scroll" id="barChartScroll"></div></div></div><div class="home-card"><button class="secondary-button" id="fuzzyReviewButton">
+復習する
+</button></div><div class="home-card"><button class="secondary-button" id="practiceModeButton">
+練習モード
+</button></div><div class="home-card"><button class="secondary-button" id="settingsButton">
+詳細設定
+</button></div></div></div><div id="settingsScreen"><div class="settings-container"><div class="settings-header"><button class="settings-back" id="settingsBackButton">‹ 戻る</button><div class="settings-title">詳細設定</div></div><div class="setting-card"><h2 class="setting-title">音量</h2><div class="setting-description">
+カードが表示された時に英単語を読み上げる音声の音量です。0にすると読み上げを行いません。
+</div><div class="range-row"><span>🔈</span><input type="range" id="volumeSetting" min="0" max="100" step="1"><span>🔊</span><span class="range-value" id="volumeValue">100%</span></div></div><div class="setting-card"><h2 class="setting-title">外観</h2><div class="setting-row"><span>ダークモード</span><select id="themeSetting"><option value="system">iPhoneの設定に合わせる</option><option value="light">ライト</option><option value="dark">ダーク</option></select></div></div><div class="setting-card"><h2 class="setting-title">単語データ読み取り</h2><div class="setting-description">
+「番号　英単語　日本語訳」の形式で1行ずつ貼り付けてください。<br>
+例）1　change　変える<br>
+&nbsp;&nbsp;&nbsp;2　learn　学ぶ<br>
+番号が既に使われている場合は、自動的に使用中の最大番号の次の番号に振り直されます。
 </div>
-
-
-<div class="panel">
-
-<h2>② 単語帳を貼り付け</h2>
-
-<div class="info">
-
-入力例：
-
-<br>
-
-<code>1　change　変える</code>
-
-<br>
-
-<code>2　learn　学ぶ</code>
-
-<br>
-
-<code>50　need　必要とする</code>
-
-<br><br>
-
-<strong>複数語の熟語にも対応しています。</strong>
-
-<br><br>
-
-例：
-
-<br>
-
-<code>551　bring back　〜を返す</code>
-
-<br>
-
-↓
-
-<br>
-
-<code>0551　bring back　〜を返す</code>
-
-<br><br>
-
-また、元データが次のようになっていても対応します。
-
-<br>
-
-<code>551　bring　"back　〜を返す</code>
-
-<br>
-
-↓
-
-<br>
-
-<code>0551　bring back　〜を返す</code>
-
-<br><br>
-
-半角スペース・全角スペース・タブに対応。
-
-<br>
-
-番号は自動的に4桁へ変換します。
-
-<br>
-
-例：1 → 0001、50 → 0050、551 → 0551、1700 → 1700
-
+<textarea id="wordDataInput" class="data-textarea" placeholder="1　change　変える&#10;2　learn　学ぶ"></textarea>
+<div class="button-row"><button class="secondary-button" id="importWordsButton">単語データを読み込む</button><button class="danger-button" id="clearWordsButton">全データを削除</button></div><div class="button-row"><button class="secondary-button" id="manageWordsButton">保存済みの単語を編集・削除する</button></div><div class="save-message" id="importMessage"></div></div><div class="setting-card"><h2 class="setting-title">データのバックアップ</h2><div class="setting-description">
+単語データと設定をまとめたバックアップ文字列を作成できます。機種変更やブラウザ変更の前に文字列をコピーして保存しておき、復元欄に貼り付けることで元に戻せます。
+</div><div class="button-row"><button class="secondary-button" id="createBackupButton">バックアップ文字列を作成</button></div>
+<textarea id="backupOutput" class="data-textarea" readonly placeholder="ここにバックアップ文字列が表示されます"></textarea>
+<div class="button-row"><button class="secondary-button" id="copyBackupButton">コピーする</button></div><div class="setting-description" style="margin-top: 20px;">
+バックアップ文字列を貼り付けて復元します。現在保存されているデータは上書きされます。
 </div>
-
-<br>
-
-<textarea
-    id="input"
-    placeholder="ここに単語帳を貼り付けてください"
-></textarea>
-
-</div>
-
-
-<div class="panel">
-
-<h2>③ Anki用ファイルを生成</h2>
-
-<button id="generate">
-生成
-</button>
-
-<button id="copy">
-コピー
-</button>
-
-<button id="download">
-.txtをダウンロード
-</button>
-
-<div
-    class="status"
-    id="status"
->
-まだ生成していません。
-</div>
-
-</div>
-
-
-<div class="panel">
-
-<h2>④ 生成結果</h2>
-
-<textarea
-    id="output"
-    readonly
-    placeholder="ここに生成結果が表示されます"
-></textarea>
-
-</div>
-
-
-<div class="panel">
-
-<h2>⑤ Anki側の設定</h2>
-
-<div class="info">
-
-このツールは以下の3フィールドを使います。
-
-<br><br>
-
-<strong>Number</strong><br>
-番号（0001、0002、0050など）
-
-<br><br>
-
-<strong>Front</strong><br>
-英単語・熟語
-
-<br><br>
-
-<strong>Back</strong><br>
-日本語訳
-
-<br><br>
-
-Ankiでは、
-
-<br>
-
-<code>Number / Front / Back</code>
-
-<br>
-
-という3フィールドのノートタイプを用意してください。
-
-<br><br>
-
-<strong>Numberはカード上に表示しなくてもOKです。</strong>
-
-<br>
-
-カードテンプレートでNumberを使わなければ、
-表・裏には表示されません。
-
-</div>
-
-</div>
-
-</div>
-
-
+<textarea id="restoreInput" class="data-textarea" placeholder="バックアップ文字列を貼り付け"></textarea>
+<div class="button-row"><button class="danger-button" id="restoreBackupButton">この内容で復元する</button></div><div class="save-message" id="backupMessage"></div></div><div class="setting-card"><h2 class="setting-title">語源AI</h2><div class="setting-description">学習中の英単語について、語源・由来・覚え方をAIに質問できます。APIを使う場合は下のURLとキーを設定してください。キーはこのブラウザのlocalStorageに保存されます。安全性を優先するなら、自分で用意したサーバー側プロキシをURLに設定してください。API未設定でも「ChatGPTで聞く」は使えます。</div><div class="setting-row"><span>AI APIを使用</span><select id="aiEnabledSetting"><option value="false">OFF（ChatGPTで開く）</option><option value="true">ON（APIを使う）</option></select></div><div class="setting-row"><span>API URL</span><input type="text" id="aiEndpointSetting" style="width: 58%;" value="https://api.openai.com/v1/responses"></div><div class="setting-row"><span>モデル</span><input type="text" id="aiModelSetting" style="width: 58%;" value="gpt-5.6-luna"></div><div class="setting-row"><span>APIキー</span><input type="password" id="aiApiKeySetting" style="width: 58%;" placeholder="sk-..."></div><div class="setting-row"><span>回答の長さ</span><select id="aiDetailSetting" style="min-width: 180px;"><option value="short">短め</option><option value="normal" selected>標準</option><option value="detailed">詳しめ</option></select></div><div class="save-message" id="aiSaveMessage"></div></div><div class="setting-card"><h2 class="setting-title">単語の並び順をシャッフル</h2><div class="setting-description">
+登録されている単語（1番〜最大番号）の中身を、1回だけランダムに入れ替えて固定します。番号（1日の学習範囲を決める基準）自体は変わりませんが、どの単語がどの番号＝どの日の学習範囲に入るかがランダムに変わります。実行後は自動的に元へは戻せないため、事前に上のバックアップ文字列を作成しておくことをおすすめします。
+</div><div class="button-row"><button class="danger-button" id="shuffleWordsButton">今の単語データを1回だけランダムに並び替える</button></div><div class="save-message" id="shuffleMessage"></div></div><div class="setting-card"><h2 class="setting-title">1日の暗記量</h2><div class="setting-description">
+1日に新しく学習する単語数です。変更すると学習範囲（ルール）も連動して変わります。
+</div><div class="setting-row"><span>1日の単語数</span><div><input type="number" id="dailyWordSetting" min="1" max="10000" step="1"><span>語</span></div></div></div><div class="setting-card"><h2 class="setting-title">＋α復習（覚えた単語の追加復習）</h2><div class="setting-description">
+「覚えた」判定になった単語は普段の学習には出てきませんが、簡易的なFSRS（間隔反復）方式のスケジュールに基づいて、忘れかけた頃に「＋α」として今日の学習の最後に追加で出題できます。0にするとこの追加復習は行いません。
+</div><div class="setting-row"><span>1日の追加復習の上限</span><div><input type="number" id="extraReviewLimitSetting" min="0" max="500" step="1"><span>語</span></div></div></div><div class="setting-card"><h2 class="setting-title">定着テスト（「覚えた」判定）</h2><div class="setting-description">
+「うろ覚え」「完璧」の判定を合計で指定回数行った単語は、次に出た時が定着テストになります。テストで「完璧」に正解できれば「覚えた」として記録され、以後は通常の学習には出てこなくなります（＋α復習の対象にはなります）。不合格（うろ覚え・もう一度）だった場合は回数が2回分だけ減り（0未満にはなりません）、その状態から続けてカウントします。
+</div><div class="setting-row"><span>この機能を使用</span><select id="masteryEnabledSetting"><option value="true">ON</option><option value="false">OFF</option></select></div><div class="setting-row"><span>テストまでの回数</span><div><input type="number" id="masteryThresholdSetting" min="1" max="50" step="1"><span>回</span></div></div></div><div class="setting-card"><h2 class="setting-title">学習日数の調整</h2><div class="setting-description">
+現在の学習日数：<strong id="currentDayLabel">--</strong><br>
+ここで日数を調整しても、ホーム画面に表示される「今日の日付」は実際の今日のままです。学習スケジュール（何番〜何番を学習するか）だけが変わります。
+</div><div class="button-row"><button class="danger-button" id="resetDayButton">1日目にリセットする</button></div><div class="setting-row" style="margin-top: 10px;"><span>指定した日数だけ前に戻る</span><div><input type="number" id="goBackDaysInput" min="1" max="365" step="1" value="1"><span>日</span></div></div><div class="button-row"><button class="secondary-button" id="goBackDaysButton">この日数だけ前に戻る</button></div><div class="setting-row" style="margin-top: 10px;"><span>指定した日数だけ進める</span><div><input type="number" id="goForwardDaysInput" min="1" max="365" step="1" value="1"><span>日</span></div></div><div class="button-row"><button class="secondary-button" id="goForwardDaysButton">この日数だけ進める</button></div><div class="save-message" id="dayAdjustMessage"></div></div><div class="setting-card"><h2 class="setting-title">「もう一度」の設定</h2><div class="setting-description">
+「もう一度」を押した単語が再び出題されるまでの時間です。
+</div><div class="setting-row"><span>再出題まで</span><div><input type="number" id="againDelaySetting" min="1" max="3600" step="1"><span>秒</span></div></div></div><div class="setting-card"><h2 class="setting-title">2回目以降の出題順</h2><div class="setting-description">
+ONにすると、同じ範囲を2回目以降に学習する時、「うろ覚え」の単語をすべて出題し、
+「完璧」だった単語をその間に均等に混ぜて出題します。
+</div><div class="setting-row"><span>この並び替えを使用</span><select id="reorderEnabledSetting"><option value="true">ON</option><option value="false">OFF</option></select></div></div><div class="setting-card"><h2 class="setting-title">回答マークの表示時間</h2><div class="setting-description">
+「もう一度／うろ覚え／完璧」を押した時に表示される小さなマークの表示時間です。この時間が経つと次のカードに切り替わります。
+</div><div class="setting-row"><span>表示時間</span><div><input type="number" id="answerMarkDurationSetting" min="100" max="3000" step="50"><span>ミリ秒</span></div></div></div><div class="setting-card"><h2 class="setting-title">セルフレビュー</h2><div class="setting-description">
+画面を9分割し、各場所をタップした時の動作を設定できます（答えが表示された後に有効）。
+実際のボタンは常に最前列にあるため、ボタンそのものを押した場合はボタンの動作が優先されます。
+</div><div class="setting-row"><span>セルフレビューを使用</span><select id="selfReviewEnabled"><option value="true">ON</option><option value="false">OFF</option></select></div><div class="self-review-grid" id="selfReviewGrid"></div></div><div class="save-message" id="saveMessage"></div></div></div><div id="wordManageScreen" style="display:none; min-height:100dvh; padding:20px 16px 40px;"><div class="settings-container"><div class="settings-header"><button class="settings-back" id="wordManageBackButton">‹ 戻る</button><div class="settings-title">単語データ管理</div></div><div class="word-manage-toolbar"><input type="text" id="wordSearchInput" class="search-input" placeholder="番号・英単語・日本語訳で検索"></div><div class="button-row" style="margin-bottom: 16px;"><button class="secondary-button" id="addWordButton">＋ 単語を追加</button></div><div class="word-manage-count" id="wordManageCount"></div><div id="wordManageList"></div></div></div><div id="reviewSetupScreen" style="display:none; min-height:100dvh; padding:20px 16px 40px;"><div class="settings-container"><div class="settings-header"><button class="settings-back" id="reviewSetupBackButton">‹ 戻る</button><div class="settings-title">復習</div></div><div class="setting-card"><h2 class="setting-title">対象にする暗記状況</h2><div class="setting-description">
+復習したい単語のグループを選んでください（複数選択可）。
+</div><div class="setting-row"><label class="checkbox-row"><input type="checkbox" id="reviewStatusPerfect"> 完璧</label></div><div class="setting-row"><label class="checkbox-row"><input type="checkbox" id="reviewStatusFuzzy" checked> うろ覚え</label></div><div class="setting-row"><label class="checkbox-row"><input type="checkbox" id="reviewStatusUnlearned"> 未暗記</label></div><div class="setting-row"><label class="checkbox-row"><input type="checkbox" id="reviewStatusMastered"> 覚えた</label></div></div><div class="setting-card"><h2 class="setting-title">対象にする範囲</h2><div class="setting-description">
+全ての単語から選ぶか、1日の暗記量ごとに区切られたまとまりを選んで絞り込めます。
+</div><div class="setting-row"><span>範囲</span><select id="reviewRangeMode"><option value="all">全ての単語から</option><option value="chunks">まとまりを選ぶ</option></select></div><div id="reviewChunkListWrap" style="display:none; margin-top: 12px;"><div class="chunk-checkbox-list" id="reviewChunkList"></div></div></div><div class="setting-card"><div class="save-message" id="reviewPoolMessage"></div><div class="button-row"><button class="primary-button" id="reviewStartButton">この内容で復習を始める</button></div></div></div></div><div id="practiceSetupScreen" style="display:none; min-height:100dvh; padding:20px 16px 40px;"><div class="settings-container"><div class="settings-header"><button class="settings-back" id="practiceSetupBackButton">‹ 戻る</button><div class="settings-title">練習モード</div></div><div class="setting-card"><h2 class="setting-title">対象にする暗記状況</h2><div class="setting-description">
+練習したい単語のグループを選んでください（複数選択可）。この練習の結果を単語データに反映するかどうかは、終了時に選べます。
+</div><div class="setting-row"><label class="checkbox-row"><input type="checkbox" id="practiceStatusPerfect" checked> 完璧</label></div><div class="setting-row"><label class="checkbox-row"><input type="checkbox" id="practiceStatusFuzzy" checked> うろ覚え</label></div><div class="setting-row"><label class="checkbox-row"><input type="checkbox" id="practiceStatusUnlearned" checked> 未暗記</label></div><div class="setting-row"><label class="checkbox-row"><input type="checkbox" id="practiceStatusMastered"> 覚えた</label></div></div><div class="setting-card"><h2 class="setting-title">対象にする範囲</h2><div class="setting-description">
+全ての単語から選ぶか、1日の暗記量ごとに区切られたまとまりを選んで絞り込めます。
+</div><div class="setting-row"><span>範囲</span><select id="practiceRangeMode"><option value="all">全ての単語から</option><option value="chunks">まとまりを選ぶ</option></select></div><div id="practiceChunkListWrap" style="display:none; margin-top: 12px;"><div class="chunk-checkbox-list" id="practiceChunkList"></div></div><div class="save-message" id="practicePoolMessage"></div></div><div class="setting-card"><h2 class="setting-title">出題方式</h2><div class="setting-description">
+通常は単語をタップして答えを確認します。4択にすると、英単語に対する意味を4つの選択肢から選ぶ形式で練習できます。
+</div><div class="setting-row"><span>形式</span><select id="practiceModeSetting"><option value="flip" selected>通常（タップしてめくる）</option><option value="choice4">4択（選択式）</option></select></div></div><div class="setting-card"><h2 class="setting-title">出題順</h2><div class="setting-row"><span>ランダムにする</span><select id="practiceRandomSetting"><option value="true">ON</option><option value="false" selected>OFF</option></select></div></div><div class="setting-card"><h2 class="setting-title">練習する単語数</h2><div class="setting-description">
+対象に含まれる単語数の範囲で指定できます。
+</div><div class="setting-row"><span>単語数</span><div><input type="number" id="practiceCountInput" min="1" step="1"><span>語</span></div></div></div><div class="home-card" style="padding: 0; background: transparent; margin-top: 0;"><button class="primary-button" id="practiceStartButton">練習を始める</button></div></div></div><div id="studyScreen"><div class="self-review-overlay" id="selfReviewOverlay"><div class="sr-zone" data-position="topLeft"></div><div class="sr-zone" data-position="topCenter"></div><div class="sr-zone" data-position="topRight"></div><div class="sr-zone" data-position="middleLeft"></div><div class="sr-zone" data-position="center"></div><div class="sr-zone" data-position="middleRight"></div><div class="sr-zone" data-position="bottomLeft"></div><div class="sr-zone" data-position="bottomCenter"></div><div class="sr-zone" data-position="bottomRight"></div></div><div class="study-top-bar"><button class="study-back-button" id="studyBackButton">‹ ホーム</button><div class="study-top-right"><div class="study-progress" id="studyProgress">0 / 0</div><button class="study-icon-button" id="studyPrevButton" title="1つ前のカードに戻る">⟲</button><button class="study-icon-button" id="studyEditButton" title="この単語データを編集">✎</button></div></div><div class="card-area"><div class="word-card" id="wordCard"><div class="extra-review-badge" id="extraReviewBadge" style="display:none;">＋α復習</div><button class="replay-audio-button" id="replayAudioButton" title="音声をもう一度再生" aria-label="音声をもう一度再生"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg></button><button class="study-ai-button" id="studyAiButton" type="button" title="この単語の語源をAIに聞く">語源AI</button><div class="word" id="wordText">--</div><div class="meaning" id="meaningText">--</div><div class="tap-hint" id="tapHint">タップして答えを見る</div></div></div><div class="answer-mark" id="answerMark"></div><div class="choice-area" id="choiceArea"><div class="choice-options" id="choiceOptions"></div></div><div class="answer-area"><button class="answer-button answer-again" data-answer="again">もう一度</button><button class="answer-button answer-fuzzy" data-answer="fuzzy">うろ覚え</button><button class="answer-button answer-perfect" data-answer="perfect">完璧</button></div><div class="edit-modal-overlay" id="editModalOverlay"><div class="edit-modal"><h3>単語データを編集</h3><div class="edit-modal-id" id="editModalId">#--</div><label>英単語</label><input type="text" id="editModalWord"><label>日本語訳</label><input type="text" id="editModalMeaning"><label>暗記状況</label><select id="editModalStatus"><option value="unlearned">未暗記</option><option value="fuzzy">うろ覚え</option><option value="perfect">完璧</option><option value="mastered">覚えた</option></select><div class="edit-modal-buttons"><button class="edit-modal-cancel" id="editModalCancel">キャンセル</button><button class="edit-modal-save" id="editModalSave">保存</button></div></div></div></div><div class="ai-modal-overlay" id="aiModalOverlay"><div class="ai-modal"><div class="ai-modal-header"><h3>語源をAIに聞く</h3><button type="button" class="ai-modal-close" id="aiModalClose" aria-label="閉じる">×</button></div><div class="ai-word-label" id="aiWordLabel">--</div><div class="ai-result" id="aiResult">ここに語源の解説が表示されます。</div><div class="button-row"><button class="secondary-button" id="askAiButton">AIに聞く</button><button class="secondary-button" id="openChatGptButton">ChatGPTで聞く</button></div></div></div><div id="completeScreen"><div class="complete-title" id="completeTitle">今日の学習完了</div><div class="complete-text" id="completeText"></div><div id="completeHomeButtonWrap" style="width:100%; max-width:400px;"><button class="primary-button" id="completeHomeButton">ホームへ戻る</button></div><div id="completePracticeButtons" style="display:none; width:100%; max-width:400px; flex-direction:column; gap:10px;"><button class="primary-button" id="applyPracticeButton">この結果を単語データに反映する</button><button class="secondary-button" id="discardPracticeButton">反映せずに破棄する</button></div></div>
 <script>
 
-let generatedText = "";
 
 
-// ==================================================
-// 行を解析
-// ==================================================
+const WORD_STORAGE_KEY = "englishWordTool_words";
+const SETTINGS_STORAGE_KEY = "englishWordTool_settings";
+const START_DATE_KEY = "englishWordTool_startDate";
+const INCOMPLETE_STORAGE_KEY = "englishWordTool_incomplete";
 
-function parseLine(line) {
 
-    line = line.trim();
 
-    if (!line) {
-        return null;
+const DEFAULT_SETTINGS = {
+    volume: 100,
+    theme: "system",
+    againDelaySeconds: 60,
+    dailyWordCount: 200,
+    reorderEnabled: true,
+    answerMarkDurationMs: 550,
+    masteryEnabled: true,
+    masteryThreshold: 6,
+    extraReviewLimit: 20,
+    aiEnabled: false,
+    aiEndpoint: "https://api.openai.com/v1/responses",
+    aiModel: "gpt-5.6-luna",
+    aiApiKey: "",
+    aiDetail: "normal",
+    selfReviewEnabled: true,
+    selfReviewMap: {
+        topLeft: "again",
+        topCenter: "fuzzy",
+        topRight: "perfect",
+        middleLeft: "again",
+        center: "nothing",
+        middleRight: "perfect",
+        bottomLeft: "again",
+        bottomCenter: "fuzzy",
+        bottomRight: "perfect"
     }
+};
 
 
-    // ==================================================
-    // ① タブ区切り
-    // ==================================================
 
-    const tabParts = line.split("\t");
+function getSettings() {
+    const data = localStorage.getItem(SETTINGS_STORAGE_KEY);
 
-
-    if (tabParts.length >= 3) {
-
-        // ----------------------------------------------
-        // 番号
-        // ----------------------------------------------
-
-        const numberText =
-            tabParts[0]
-                .trim()
-                .replace(/^[\.\、,]+/, "");
-
-
-        const numberMatch =
-            numberText.match(/^(\d+)$/);
-
-
-        if (!numberMatch) {
-            return null;
-        }
-
-
-        const number =
-            parseInt(numberMatch[1], 10);
-
-
-        // ----------------------------------------------
-        // 最後のフィールドを日本語訳
-        // ----------------------------------------------
-
-        let meaning =
-            tabParts[tabParts.length - 1]
-                .trim();
-
-
-        // ----------------------------------------------
-        // 2列目以降をFrontとして結合
-        // ----------------------------------------------
-
-        let word =
-            tabParts
-                .slice(1, -1)
-                .join(" ")
-                .trim();
-
-
-        // ----------------------------------------------
-        // Front内の引用符を全部削除
-        //
-        // 例：
-        //
-        // bring "back
-        //
-        // ↓
-        //
-        // bring back
-        // ----------------------------------------------
-
-        word =
-            word
-                .replace(/"/g, "")
-                .trim();
-
-
-        // ----------------------------------------------
-        // Backの外側の引用符を削除
-        // ----------------------------------------------
-
-        meaning =
-            meaning
-                .replace(/^"+/, "")
-                .replace(/"+$/, "")
-                .trim();
-
-
-        // ----------------------------------------------
-        // 連続スペースを1つにする
-        // ----------------------------------------------
-
-        word =
-            word.replace(/\s+/g, " ");
-
-
-        // ----------------------------------------------
-        // 空欄チェック
-        // ----------------------------------------------
-
-        if (!word || !meaning) {
-            return null;
-        }
-
-
+    if (!data) {
         return {
-
-            number: number,
-
-            word: word,
-
-            meaning: meaning
-
+            ...DEFAULT_SETTINGS,
+            selfReviewMap: { ...DEFAULT_SETTINGS.selfReviewMap }
         };
-
     }
 
+    try {
+        const saved = JSON.parse(data);
+        return {
+            ...DEFAULT_SETTINGS,
+            ...saved,
+            selfReviewMap: {
+                ...DEFAULT_SETTINGS.selfReviewMap,
+                ...(saved.selfReviewMap || {})
+            }
+        };
+    } catch {
+        return { ...DEFAULT_SETTINGS };
+    }
+}
 
-    // ==================================================
-    // ② タブがない場合
-    // ==================================================
-
-    /*
-        例：
-
-        1 change 変える
-
-        2 learn 学ぶ
-
-        50 need 必要とする
-    */
-
-
-    const match =
-        line.match(
-            /^\s*(\d+)[\.\、]?\s+(\S+)\s+(.+?)\s*$/
-        );
+function saveSettings(settings) {
+    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+}
 
 
-    if (!match) {
-        return null;
+
+function getWords() {
+    const data = localStorage.getItem(WORD_STORAGE_KEY);
+    if (!data) return [];
+    try {
+        return JSON.parse(data);
+    } catch {
+        return [];
+    }
+}
+
+function saveWords(words) {
+    localStorage.setItem(WORD_STORAGE_KEY, JSON.stringify(words));
+}
+
+
+
+function getIncompleteMap() {
+    const data = localStorage.getItem(INCOMPLETE_STORAGE_KEY);
+    if (!data) return {};
+    try {
+        const parsed = JSON.parse(data);
+        return (parsed && typeof parsed === "object") ? parsed : {};
+    } catch {
+        return {};
+    }
+}
+
+function saveIncompleteMap(map) {
+    localStorage.setItem(INCOMPLETE_STORAGE_KEY, JSON.stringify(map));
+}
+
+function getRangeKey(schedule) {
+    return `${schedule.start}-${schedule.end}`;
+}
+
+
+
+function createBlankWord(id, word, meaning) {
+    return {
+        id,
+        word: word || "",
+        meaning: meaning || "",
+        status: "unlearned",
+        lastReviewed: null,
+        nextReview: null,
+        reviewCount: 0,       
+        stability: null,      
+        difficulty: null,     
+        dueDate: null         
+    };
+}
+
+
+
+function parseWordDataText(text) {
+    const lines = text.split(/\r?\n/);
+    const parsed = [];
+
+    lines.forEach(line => {
+        const trimmed = line.trim();
+        if (!trimmed) return;
+
+        
+        const tokens = trimmed.split(/[\s\u3000]+/).filter(Boolean);
+        if (tokens.length < 3) return;
+
+        const idNum = Number(tokens[0]);
+        if (!Number.isFinite(idNum)) return;
+
+        const word = tokens[1];
+        const meaning = tokens.slice(2).join(" ");
+
+        parsed.push({ id: idNum, word, meaning });
+    });
+
+    return parsed;
+}
+
+function importWordData() {
+    const textarea = document.getElementById("wordDataInput");
+    const messageEl = document.getElementById("importMessage");
+    const parsed = parseWordDataText(textarea.value);
+
+    if (parsed.length === 0) {
+        messageEl.textContent = "読み込める単語データが見つかりませんでした。";
+        return;
     }
 
+    const existing = getWords();
+    const usedIds = new Set(existing.map(word => word.id));
+    let maxId = existing.reduce((max, word) => Math.max(max, word.id), 0);
+
+    const newWords = [];
+
+    parsed.forEach(item => {
+        let id = item.id;
+
+        
+        if (usedIds.has(id)) {
+            maxId = Math.max(maxId, id);
+            id = maxId + 1;
+        }
+
+        maxId = Math.max(maxId, id);
+        usedIds.add(id);
+
+        newWords.push(createBlankWord(id, item.word, item.meaning));
+    });
+
+    saveWords([...existing, ...newWords]);
+
+    textarea.value = "";
+    messageEl.textContent = `${newWords.length}語を追加しました。`;
+
+    updateHome();
+}
+
+document.getElementById("importWordsButton").addEventListener("click", importWordData);
+
+document.getElementById("clearWordsButton").addEventListener("click", () => {
+    if (!confirm("全ての単語データを削除しますか？この操作は取り消せません。")) return;
+
+    localStorage.removeItem(WORD_STORAGE_KEY);
+    document.getElementById("importMessage").textContent = "全ての単語データを削除しました。";
+    updateHome();
+});
+
+
+
+function bytesToBase64(bytes) {
+    let binary = "";
+    const chunkSize = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+    }
+    return btoa(binary);
+}
+
+function base64ToBytes(base64) {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes;
+}
+
+function compactBackupPayload() {
+    const words = getWords();
+    const settings = getSettings();
+    // APIキーはバックアップに含めない。キーを文字列として持ち運ぶ必要はないため。
+    const safeSettings = { ...settings };
+    delete safeSettings.aiApiKey;
+    return {
+        v: 2,
+        w: words.map(word => [
+            word.id,
+            word.word || "",
+            word.meaning || "",
+            word.status || "unlearned",
+            word.lastReviewed ?? null,
+            word.nextReview ?? null,
+            word.reviewCount || 0,
+            word.stability ?? null,
+            word.difficulty ?? null,
+            word.dueDate ?? null
+        ]),
+        s: safeSettings,
+        d: getStartDate()
+    };
+}
+
+function expandCompactBackupPayload(payload) {
+    if (!payload || !Array.isArray(payload.w) || !payload.s) throw new Error("invalid compact backup");
+    const words = payload.w.map(item => ({
+        id: Number(item[0]),
+        word: item[1] || "",
+        meaning: item[2] || "",
+        status: item[3] || "unlearned",
+        lastReviewed: item[4] ?? null,
+        nextReview: item[5] ?? null,
+        reviewCount: Number(item[6]) || 0,
+        stability: item[7] ?? null,
+        difficulty: item[8] ?? null,
+        dueDate: item[9] ?? null
+    }));
+    return { words, settings: payload.s, startDate: payload.d || "" };
+}
+
+async function encodeCompressedBackup(text) {
+    const bytes = new TextEncoder().encode(text);
+    if ("CompressionStream" in window) {
+        const stream = new Blob([bytes]).stream().pipeThrough(new CompressionStream("gzip"));
+        const compressed = new Uint8Array(await new Response(stream).arrayBuffer());
+        return "EW2:" + bytesToBase64(compressed);
+    }
+    return "EJ2:" + bytesToBase64(bytes);
+}
+
+async function decodeCompressedBackup(raw) {
+    if (raw.startsWith("EW2:")) {
+        const compressed = base64ToBytes(raw.slice(4));
+        if (!("DecompressionStream" in window)) throw new Error("gzip unsupported");
+        const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream("gzip"));
+        return new TextDecoder().decode(await new Response(stream).arrayBuffer());
+    }
+    if (raw.startsWith("EJ2:")) {
+        return new TextDecoder().decode(base64ToBytes(raw.slice(4)));
+    }
+    const json = decodeURIComponent(escape(atob(raw)));
+    return json;
+}
+
+async function createBackupString() {
+    const payload = compactBackupPayload();
+    const json = JSON.stringify(payload);
+    const encoded = await encodeCompressedBackup(json);
+    document.getElementById("backupOutput").value = encoded;
+    document.getElementById("backupMessage").textContent =
+        `軽量バックアップを作成しました（元JSON ${json.length.toLocaleString()}文字 → ${encoded.length.toLocaleString()}文字）。`;
+}
+
+document.getElementById("createBackupButton").addEventListener("click", async () => {
+    const button = document.getElementById("createBackupButton");
+    button.disabled = true;
+    try {
+        await createBackupString();
+    } finally {
+        button.disabled = false;
+    }
+});
+
+document.getElementById("copyBackupButton").addEventListener("click", async () => {
+    const output = document.getElementById("backupOutput");
+    const messageEl = document.getElementById("backupMessage");
+    if (!output.value) {
+        messageEl.textContent = "先にバックアップ文字列を作成してください。";
+        return;
+    }
+    try {
+        await navigator.clipboard.writeText(output.value);
+        messageEl.textContent = "コピーしました。";
+    } catch (e) {
+        output.removeAttribute("readonly");
+        output.select();
+        try {
+            document.execCommand("copy");
+            messageEl.textContent = "コピーしました。";
+        } catch (e2) {
+            messageEl.textContent = "コピーに失敗しました。文字列を手動で選択してコピーしてください。";
+        } finally {
+            output.setAttribute("readonly", "readonly");
+        }
+    }
+});
+
+async function restoreFromBackup() {
+    const input = document.getElementById("restoreInput");
+    const messageEl = document.getElementById("backupMessage");
+    const raw = input.value.trim();
+    if (!raw) {
+        messageEl.textContent = "復元する文字列を貼り付けてください。";
+        return;
+    }
+    if (!confirm("現在保存されているデータを上書きして復元します。よろしいですか？")) return;
+    try {
+        const json = await decodeCompressedBackup(raw);
+        let payload = JSON.parse(json);
+        if (payload && payload.v === 2 && Array.isArray(payload.w)) {
+            payload = expandCompactBackupPayload(payload);
+        }
+        if (!payload || !Array.isArray(payload.words) || !payload.settings) throw new Error("invalid backup data");
+        saveWords(payload.words);
+        const currentSettings = getSettings();
+        saveSettings({
+            ...DEFAULT_SETTINGS,
+            ...payload.settings,
+            aiApiKey: currentSettings.aiApiKey || "",
+            selfReviewMap: { ...DEFAULT_SETTINGS.selfReviewMap, ...(payload.settings.selfReviewMap || {}) }
+        });
+        if (payload.startDate) localStorage.setItem(START_DATE_KEY, payload.startDate);
+        messageEl.textContent = "復元しました。";
+        input.value = "";
+        applyTheme();
+        loadSettingsUI();
+        updateHome();
+    } catch (e) {
+        console.error(e);
+        messageEl.textContent = "復元に失敗しました。文字列が正しいかご確認ください。";
+    }
+}
+
+document.getElementById("restoreBackupButton").addEventListener("click", restoreFromBackup);
+
+function shuffleWordOrderOnce() {
+    const words = getWords();
+    const sorted = words.slice().sort((a, b) => a.id - b.id);
+
+    const ids = sorted.map(word => word.id);
+    const contents = sorted.map(word => ({
+        word: word.word,
+        meaning: word.meaning,
+        status: word.status,
+        lastReviewed: word.lastReviewed,
+        nextReview: word.nextReview
+    }));
+
+    const shuffledContents = shuffleArray(contents);
+
+    const newWords = ids.map((id, index) => ({
+        id,
+        ...shuffledContents[index]
+    }));
+
+    saveWords(newWords);
+}
+
+document.getElementById("shuffleWordsButton").addEventListener("click", () => {
+    const messageEl = document.getElementById("shuffleMessage");
+    const words = getWords();
+
+    if (words.length < 2) {
+        messageEl.textContent = "並び替えるには単語が2つ以上必要です。";
+        return;
+    }
+
+    if (!confirm("単語の並び順を1回だけランダムに入れ替えて固定します。この操作は元に戻せません（バックアップ文字列があれば復元は可能です）。よろしいですか？")) return;
+
+    shuffleWordOrderOnce();
+
+    messageEl.textContent = "単語の並び順をランダムに入れ替えました。";
+    updateHome();
+});
+
+
+
+function showWordManage() {
+    document.getElementById("settingsScreen").style.display = "none";
+    document.getElementById("wordManageScreen").style.display = "block";
+    document.getElementById("wordSearchInput").value = "";
+    renderWordManageList("");
+}
+
+function hideWordManage() {
+    document.getElementById("wordManageScreen").style.display = "none";
+    document.getElementById("settingsScreen").style.display = "block";
+    updateHome();
+}
+
+document.getElementById("manageWordsButton").addEventListener("click", showWordManage);
+document.getElementById("wordManageBackButton").addEventListener("click", hideWordManage);
+
+function renderWordManageList(filterText) {
+    const words = getWords().slice().sort((a, b) => a.id - b.id);
+
+    const keyword = (filterText || "").trim().toLowerCase();
+    const filtered = keyword
+        ? words.filter(word =>
+            String(word.id).includes(keyword) ||
+            (word.word || "").toLowerCase().includes(keyword) ||
+            (word.meaning || "").toLowerCase().includes(keyword)
+          )
+        : words;
+
+    document.getElementById("wordManageCount").textContent =
+        `全${words.length}語中 ${filtered.length}語を表示`;
+
+    const container = document.getElementById("wordManageList");
+    container.innerHTML = "";
+
+    if (filtered.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty-message";
+        empty.textContent = "該当する単語がありません。";
+        container.appendChild(empty);
+        return;
+    }
+
+    const statusOptions = [
+        ["unlearned", "未暗記"],
+        ["fuzzy", "うろ覚え"],
+        ["perfect", "完璧"],
+        ["mastered", "覚えた"]
+    ];
+
+    filtered.forEach(word => {
+        const row = document.createElement("div");
+        row.className = "word-row";
+
+        const top = document.createElement("div");
+        top.className = "word-row-top";
+
+        const idLabel = document.createElement("div");
+        idLabel.className = "word-row-id";
+        idLabel.textContent = `#${word.id}`;
+
+        const fields = document.createElement("div");
+        fields.className = "word-row-fields";
+
+        const wordInput = document.createElement("input");
+        wordInput.type = "text";
+        wordInput.value = word.word || "";
+        wordInput.placeholder = "英単語";
+        wordInput.addEventListener("change", () => {
+            updateWordField(word.id, "word", wordInput.value);
+        });
+
+        const meaningInput = document.createElement("input");
+        meaningInput.type = "text";
+        meaningInput.value = word.meaning || "";
+        meaningInput.placeholder = "日本語訳";
+        meaningInput.addEventListener("change", () => {
+            updateWordField(word.id, "meaning", meaningInput.value);
+        });
+
+        fields.appendChild(wordInput);
+        fields.appendChild(meaningInput);
+
+        top.appendChild(idLabel);
+        top.appendChild(fields);
+
+        const bottom = document.createElement("div");
+        bottom.className = "word-row-bottom";
+
+        const statusSelect = document.createElement("select");
+        statusSelect.className = "word-status-select";
+
+        statusOptions.forEach(([value, label]) => {
+            const option = document.createElement("option");
+            option.value = value;
+            option.textContent = label;
+            if ((word.status || "unlearned") === value) option.selected = true;
+            statusSelect.appendChild(option);
+        });
+
+        statusSelect.addEventListener("change", () => {
+            updateWordField(word.id, "status", statusSelect.value);
+        });
+
+        const deleteButton = document.createElement("button");
+        deleteButton.className = "word-delete-button";
+        deleteButton.textContent = "削除";
+        deleteButton.addEventListener("click", () => {
+            deleteWordById(word.id);
+        });
+
+        bottom.appendChild(statusSelect);
+        bottom.appendChild(deleteButton);
+
+        row.appendChild(top);
+        row.appendChild(bottom);
+        container.appendChild(row);
+    });
+}
+
+function updateWordField(id, field, value) {
+    const words = getWords();
+    const target = words.find(word => word.id === id);
+    if (!target) return;
+
+    target[field] = value;
+    saveWords(words);
+    updateHome();
+}
+
+function deleteWordById(id) {
+    if (!confirm(`#${id} を削除しますか？この操作は取り消せません。`)) return;
+
+    const words = getWords().filter(word => word.id !== id);
+    saveWords(words);
+
+    renderWordManageList(document.getElementById("wordSearchInput").value);
+    updateHome();
+}
+
+function addNewWord() {
+    const words = getWords();
+    const maxId = words.reduce((max, word) => Math.max(max, word.id), 0);
+
+    words.push(createBlankWord(maxId + 1, "", ""));
+
+    saveWords(words);
+
+    document.getElementById("wordSearchInput").value = "";
+    renderWordManageList("");
+    updateHome();
+}
+
+document.getElementById("addWordButton").addEventListener("click", addNewWord);
+
+document.getElementById("wordSearchInput").addEventListener("input", event => {
+    renderWordManageList(event.target.value);
+});
+
+
+
+function getSelectedPracticeStatuses() {
+    const statuses = [];
+    if (document.getElementById("practiceStatusPerfect").checked) statuses.push("perfect");
+    if (document.getElementById("practiceStatusFuzzy").checked) statuses.push("fuzzy");
+    if (document.getElementById("practiceStatusUnlearned").checked) statuses.push("unlearned");
+    if (document.getElementById("practiceStatusMastered").checked) statuses.push("mastered");
+    return statuses;
+}
+
+function renderPracticeChunkList() {
+    const container = document.getElementById("practiceChunkList");
+    container.innerHTML = "";
+
+    const chunks = getReviewChunks();
+
+    if (chunks.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty-message";
+        empty.textContent = "単語データがありません。";
+        container.appendChild(empty);
+        return;
+    }
+
+    chunks.forEach(chunk => {
+        const item = document.createElement("label");
+        item.className = "chunk-checkbox-item";
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.dataset.start = chunk.start;
+        checkbox.dataset.end = chunk.end;
+        checkbox.addEventListener("change", updatePracticePool);
+
+        const text = document.createElement("span");
+        text.textContent = chunk.label;
+
+        item.appendChild(checkbox);
+        item.appendChild(text);
+        container.appendChild(item);
+    });
+}
+
+function getPracticeSelectedRanges() {
+    const mode = document.getElementById("practiceRangeMode").value;
+    if (mode === "all") return null;
+
+    const checked = Array.from(document.querySelectorAll("#practiceChunkList input[type='checkbox']:checked"));
+    return checked.map(checkbox => ({
+        start: Number(checkbox.dataset.start),
+        end: Number(checkbox.dataset.end)
+    }));
+}
+
+function getPracticePool() {
+    const statuses = getSelectedPracticeStatuses();
+    if (statuses.length === 0) return [];
+
+    const ranges = getPracticeSelectedRanges();
+
+    let pool = getWords().filter(word => statuses.includes(word.status || "unlearned"));
+
+    if (ranges !== null) {
+        if (ranges.length === 0) return [];
+        pool = pool.filter(word => ranges.some(range => word.id >= range.start && word.id <= range.end));
+    }
+
+    return pool;
+}
+
+function updatePracticePool() {
+    const countInput = document.getElementById("practiceCountInput");
+    const messageEl = document.getElementById("practicePoolMessage");
+
+    if (getSelectedPracticeStatuses().length === 0) {
+        messageEl.textContent = "対象にする暗記状況を1つ以上選んでください。";
+        countInput.value = 0;
+        countInput.max = 0;
+        return;
+    }
+
+    const mode = document.getElementById("practiceRangeMode").value;
+    if (mode === "chunks" && getPracticeSelectedRanges().length === 0) {
+        messageEl.textContent = "対象にするまとまりを1つ以上選んでください。";
+        countInput.value = 0;
+        countInput.max = 0;
+        return;
+    }
+
+    const pool = getPracticePool();
+
+    if (pool.length === 0) {
+        messageEl.textContent = "対象になる単語がありません。条件を変更してください。";
+        countInput.value = 0;
+        countInput.max = 0;
+        return;
+    }
+
+    messageEl.textContent = `対象：${pool.length}語`;
+    countInput.max = pool.length;
+
+    const currentValue = Number(countInput.value) || 0;
+    if (currentValue <= 0 || currentValue > pool.length) {
+        countInput.value = Math.min(pool.length, 20);
+    }
+}
+
+["practiceStatusPerfect", "practiceStatusFuzzy", "practiceStatusUnlearned", "practiceStatusMastered"].forEach(id => {
+    document.getElementById(id).addEventListener("change", updatePracticePool);
+});
+
+document.getElementById("practiceRangeMode").addEventListener("change", event => {
+    document.getElementById("practiceChunkListWrap").style.display =
+        event.target.value === "chunks" ? "block" : "none";
+    updatePracticePool();
+});
+
+function showPracticeSetup() {
+    document.getElementById("homeScreen").style.display = "none";
+    document.getElementById("practiceSetupScreen").style.display = "block";
+
+    renderPracticeChunkList();
+    document.getElementById("practiceRangeMode").value = "all";
+    document.getElementById("practiceChunkListWrap").style.display = "none";
+    updatePracticePool();
+}
+
+function hidePracticeSetup() {
+    document.getElementById("practiceSetupScreen").style.display = "none";
+    document.getElementById("homeScreen").style.display = "block";
+    updateHome();
+}
+
+document.getElementById("practiceModeButton").addEventListener("click", showPracticeSetup);
+document.getElementById("practiceSetupBackButton").addEventListener("click", hidePracticeSetup);
+
+function shuffleArray(array) {
+    const result = [...array];
+    for (let i = result.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [result[i], result[j]] = [result[j], result[i]];
+    }
+    return result;
+}
+
+document.getElementById("practiceStartButton").addEventListener("click", () => {
+    if (getSelectedPracticeStatuses().length === 0) {
+        alert("対象にする暗記状況を1つ以上選んでください。");
+        return;
+    }
+
+    const rangeMode = document.getElementById("practiceRangeMode").value;
+    if (rangeMode === "chunks" && getPracticeSelectedRanges().length === 0) {
+        alert("対象にするまとまりを1つ以上選んでください。");
+        return;
+    }
+
+    const pool = getPracticePool();
+
+    if (pool.length === 0) {
+        alert("対象になる単語がありません。条件を変更してください。");
+        return;
+    }
+
+    const countInput = document.getElementById("practiceCountInput");
+    const count = Math.max(1, Math.min(pool.length, Number(countInput.value) || pool.length));
+
+    const isRandom = document.getElementById("practiceRandomSetting").value === "true";
+    const ordered = isRandom ? shuffleArray(pool) : [...pool].sort((a, b) => a.id - b.id);
+    const selected = ordered.slice(0, count);
+
+    currentSessionType = "practice";
+    currentSessionRangeKey = null;
+    practiceResults = {};
+    practiceQueueSnapshot = selected.map(word => ({ ...word }));
+    practiceQuizMode = document.getElementById("practiceModeSetting").value === "choice4";
+
+    studyQueue = selected.map(word => ({ ...word }));
+    currentIndex = 0;
+    currentWord = null;
+    againWaiting = [];
+    cardHistory = [];
+    clearTimeout(waitingTimer);
+
+    updateStudyBackButtonLabel();
+    showStudyScreen();
+    showCurrentCard();
+});
+
+
+
+function getTodayString() {
+    const date = new Date();
+    return [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, "0"),
+        String(date.getDate()).padStart(2, "0")
+    ].join("-");
+}
+
+function getStartDate() {
+    let start = localStorage.getItem(START_DATE_KEY);
+    if (!start) {
+        start = getTodayString();
+        localStorage.setItem(START_DATE_KEY, start);
+    }
+    return start;
+}
+
+function getElapsedDays() {
+    const start = new Date(getStartDate());
+    const today = new Date(getTodayString());
+    const difference = today.getTime() - start.getTime();
+    return Math.floor(difference / (1000 * 60 * 60 * 24)) + 1;
+}
+
+function formatDateString(date) {
+    return [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, "0"),
+        String(date.getDate()).padStart(2, "0")
+    ].join("-");
+}
+
+
+
+function resetStudyDay() {
+    localStorage.setItem(START_DATE_KEY, getTodayString());
+}
+
+function goBackStudyDays(days) {
+    const amount = Math.max(0, Math.floor(Number(days) || 0));
+    if (amount === 0) return;
+
+    const start = new Date(getStartDate());
+    start.setDate(start.getDate() + amount);
+
+    const today = new Date(getTodayString());
+    
+    const clamped = start.getTime() > today.getTime() ? today : start;
+
+    localStorage.setItem(START_DATE_KEY, formatDateString(clamped));
+}
+
+function goForwardStudyDays(days) {
+    const amount = Math.max(0, Math.floor(Number(days) || 0));
+    if (amount === 0) return;
+
+    const start = new Date(getStartDate());
+    start.setDate(start.getDate() - amount);
+
+    localStorage.setItem(START_DATE_KEY, formatDateString(start));
+}
+
+
+
+function getTodaySchedule() {
+    const settings = getSettings();
+    const daily = Number(settings.dailyWordCount) || 200;
+    const elapsed = getElapsedDays();
+
+    const dayInSet = ((elapsed - 1) % 5) + 1;
+    const set = Math.floor((elapsed - 1) / 5) + 1;
+
+    const start = (dayInSet - 1) * daily + 1;
+    const end = dayInSet * daily;
+
+    return { day: elapsed, set, dayInSet, start, end, count: daily };
+}
+
+function getTodayWords() {
+    const words = getWords();
+    const schedule = getTodaySchedule();
+
+    return words.filter(word => word.id >= schedule.start && word.id <= schedule.end);
+}
+
+
+
+function wasReviewedToday(word) {
+    if (!word.lastReviewed) return false;
+    return formatDateString(new Date(word.lastReviewed)) === getTodayString();
+}
+
+function isMastered(word) {
+    return word.status === "mastered";
+}
+
+
+
+function getTodayTargetPool() {
+    const schedule = getTodaySchedule();
+    const allWords = getWords();
+
+    let pool = allWords
+        .filter(word => word.id >= schedule.start && word.id <= schedule.end)
+        .filter(word => !isMastered(word));
+
+    const target = schedule.count;
+
+    if (pool.length < target) {
+        const usedIds = new Set(pool.map(word => word.id));
+        const extraNeeded = target - pool.length;
+
+        const extras = allWords
+            .filter(word => word.id > schedule.end && !usedIds.has(word.id) && !isMastered(word))
+            .sort((a, b) => a.id - b.id)
+            .slice(0, extraNeeded);
+
+        pool = [...pool, ...extras];
+    }
+
+    return pool;
+}
+
+
+function getTodayStudyWords() {
+    const pool = getTodayTargetPool();
+
+    return pool.filter(word => {
+        if ((word.status === "perfect" || word.status === "fuzzy") && wasReviewedToday(word)) return false;
+        return true;
+    });
+}
+
+
+
+function updateHome() {
+    const schedule = getTodaySchedule();
+    const words = getWords();
+    const todayWords = getTodayTargetPool();
+    const remainingWords = getTodayStudyWords();
+
+    document.getElementById("todayDate").textContent =
+        new Date().toLocaleDateString("ja-JP", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+            weekday: "long"
+        });
+
+    document.getElementById("todayRange").textContent =
+        `${schedule.start}番 ～ ${schedule.end}番`;
+
+    document.getElementById("todaySet").textContent =
+        `${schedule.day}日目 ・ ${schedule.set}セット目`;
+
+    
+    
+    const rangeKey = getRangeKey(schedule);
+    const incompleteMap = getIncompleteMap();
+    const hasPending = Boolean(incompleteMap[rangeKey] && incompleteMap[rangeKey].length > 0);
+    const isInProgress = hasPending || remainingWords.length !== todayWords.length;
+
+    if (todayWords.length === 0) {
+        document.getElementById("todayCount").textContent = "今日の残り対象：0語";
+    } else if (!isInProgress) {
+        document.getElementById("todayCount").textContent =
+            `今日の残り対象：${remainingWords.length}語`;
+    } else {
+        document.getElementById("todayCount").textContent =
+            `今日の残り対象：${remainingWords.length}語（全${todayWords.length}語中・途中）`;
+    }
+
+    const settings = getSettings();
+    const extraLimit = Math.max(0, Number(settings.extraReviewLimit) || 0);
+    const extraCount = getDueMasteredWords(extraLimit).length;
+    const extraEl = document.getElementById("todayExtraReview");
+
+    if (extraCount > 0) {
+        extraEl.style.display = "block";
+        extraEl.textContent = `＋α復習：${extraCount}語（覚えた単語の復習）`;
+    } else {
+        extraEl.style.display = "none";
+    }
+
+    document.getElementById("startStudyButton").disabled = words.length === 0;
+
+    renderProgressView();
+}
+
+
+
+function updateProgress(words) {
+    const total = words.length;
+
+    let mastered = 0;
+    let perfect = 0;
+    let fuzzy = 0;
+
+    words.forEach(word => {
+        if (word.status === "mastered") mastered++;
+        else if (word.status === "perfect") perfect++;
+        else if (word.status === "fuzzy") fuzzy++;
+    });
+
+    const unlearned = Math.max(0, total - mastered - perfect - fuzzy);
+
+    if (total === 0) {
+        document.getElementById("homeProgressPercent").textContent = "0%";
+        document.getElementById("progressNumber").textContent = "0%";
+        document.getElementById("masteredValue").textContent = "0%";
+        document.getElementById("perfectValue").textContent = "0%";
+        document.getElementById("fuzzyValue").textContent = "0%";
+        document.getElementById("unlearnedValue").textContent = "0%";
+
+        const emptyCircle = document.getElementById("progressCircle");
+        emptyCircle.style.setProperty("--mastered", "0deg");
+        emptyCircle.style.setProperty("--perfect", "0deg");
+        emptyCircle.style.setProperty("--fuzzy", "0deg");
+        return;
+    }
+
+    const masteredPercent = (mastered / total) * 100;
+    const perfectPercent = (perfect / total) * 100;
+    const fuzzyPercent = (fuzzy / total) * 100;
+    const unlearnedPercent = (unlearned / total) * 100;
+
+    
+    const masteryRatePercent = masteredPercent + perfectPercent;
+
+    document.getElementById("homeProgressPercent").textContent = `${Math.round(masteryRatePercent)}%`;
+    document.getElementById("progressNumber").textContent = `${Math.round(masteryRatePercent)}%`;
+    document.getElementById("masteredValue").textContent = `${Math.round(masteredPercent)}%`;
+    document.getElementById("perfectValue").textContent = `${Math.round(perfectPercent)}%`;
+    document.getElementById("fuzzyValue").textContent = `${Math.round(fuzzyPercent)}%`;
+    document.getElementById("unlearnedValue").textContent = `${Math.round(unlearnedPercent)}%`;
+
+    const circle = document.getElementById("progressCircle");
+    circle.style.setProperty("--mastered", `${masteredPercent * 3.6}deg`);
+    circle.style.setProperty("--perfect", `${perfectPercent * 3.6}deg`);
+    circle.style.setProperty("--fuzzy", `${fuzzyPercent * 3.6}deg`);
+}
+
+
+
+const PROGRESS_MODES = ["today", "overall", "chunks"];
+const PROGRESS_MODE_LABELS = {
+    today: "今日の進捗",
+    overall: "全体の進捗",
+    chunks: "100語ごとの内訳"
+};
+
+let progressViewMode = "today";
+
+function renderProgressView() {
+    const circleWrap = document.getElementById("progressCircleWrap");
+    const barWrap = document.getElementById("progressBarWrap");
+
+    document.getElementById("progressModeLabel").textContent = PROGRESS_MODE_LABELS[progressViewMode];
+
+    if (progressViewMode === "chunks") {
+        circleWrap.style.display = "none";
+        barWrap.style.display = "block";
+        renderBarChart();
+        return;
+    }
+
+    circleWrap.style.display = "block";
+    barWrap.style.display = "none";
+
+    if (progressViewMode === "overall") {
+        updateProgress(getWords());
+    } else {
+        updateProgress(getTodayTargetPool());
+    }
+}
+
+function toggleProgressView() {
+    const currentIndex = PROGRESS_MODES.indexOf(progressViewMode);
+    progressViewMode = PROGRESS_MODES[(currentIndex + 1) % PROGRESS_MODES.length];
+    renderProgressView();
+}
+
+document.getElementById("progressToggleButton").addEventListener("click", toggleProgressView);
+
+function renderBarChart() {
+    const words = getWords();
+    const container = document.getElementById("barChartScroll");
+    container.innerHTML = "";
+
+    if (words.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "bar-chart-empty";
+        empty.textContent = "単語データがありません。";
+        container.appendChild(empty);
+        return;
+    }
+
+    const maxId = words.reduce((max, word) => Math.max(max, word.id), 0);
+    const chunkCount = Math.ceil(maxId / 100);
+
+    for (let chunk = 0; chunk < chunkCount; chunk++) {
+        const startId = chunk * 100 + 1;
+        const endId = (chunk + 1) * 100;
+
+        const chunkWords = words.filter(word => word.id >= startId && word.id <= endId);
+        const total = chunkWords.length;
+        const mastered = chunkWords.filter(word => word.status === "mastered").length;
+        const perfect = chunkWords.filter(word => word.status === "perfect").length;
+        const fuzzy = chunkWords.filter(word => word.status === "fuzzy").length;
+        const unlearned = Math.max(0, total - mastered - perfect - fuzzy);
+
+        const item = document.createElement("div");
+        item.className = "bar-item";
+
+        const track = document.createElement("div");
+        track.className = "bar-track";
+
+        if (total > 0) {
+            
+            const segUnlearned = document.createElement("div");
+            segUnlearned.className = "bar-segment bar-segment-unlearned";
+            segUnlearned.style.height = `${(unlearned / total) * 100}%`;
+
+            const segFuzzy = document.createElement("div");
+            segFuzzy.className = "bar-segment bar-segment-fuzzy";
+            segFuzzy.style.height = `${(fuzzy / total) * 100}%`;
+
+            const segPerfect = document.createElement("div");
+            segPerfect.className = "bar-segment bar-segment-perfect";
+            segPerfect.style.height = `${(perfect / total) * 100}%`;
+
+            const segMastered = document.createElement("div");
+            segMastered.className = "bar-segment bar-segment-mastered";
+            segMastered.style.height = `${(mastered / total) * 100}%`;
+
+            track.appendChild(segUnlearned);
+            track.appendChild(segFuzzy);
+            track.appendChild(segPerfect);
+            track.appendChild(segMastered);
+        }
+
+        const label = document.createElement("div");
+        label.className = "bar-label";
+        const percent = total > 0 ? Math.round(((perfect + mastered) / total) * 100) : 0;
+        label.textContent = `${startId}\n-${endId}\n${percent}%`;
+
+        item.appendChild(track);
+        item.appendChild(label);
+        container.appendChild(item);
+    }
+}
+
+
+
+function applyTheme() {
+    const settings = getSettings();
+
+    document.body.classList.remove("dark", "theme-system");
+
+    if (settings.theme === "dark") {
+        document.body.classList.add("dark");
+    } else if (settings.theme === "system") {
+        
+        document.body.classList.add("theme-system");
+    }
+    
+}
+
+
+
+function showSettings() {
+    document.getElementById("homeScreen").style.display = "none";
+    document.getElementById("settingsScreen").style.display = "block";
+    loadSettingsUI();
+}
+
+function hideSettings() {
+    document.getElementById("settingsScreen").style.display = "none";
+    document.getElementById("homeScreen").style.display = "block";
+    updateHome();
+}
+
+document.getElementById("settingsButton").addEventListener("click", showSettings);
+document.getElementById("settingsBackButton").addEventListener("click", hideSettings);
+
+
+
+function loadSettingsUI() {
+    const settings = getSettings();
+    loadAiSettingsUI();
+
+    document.getElementById("volumeSetting").value = settings.volume;
+    document.getElementById("volumeValue").textContent = `${settings.volume}%`;
+    document.getElementById("themeSetting").value = settings.theme;
+    document.getElementById("againDelaySetting").value = settings.againDelaySeconds;
+    document.getElementById("dailyWordSetting").value = settings.dailyWordCount;
+    document.getElementById("extraReviewLimitSetting").value = settings.extraReviewLimit;
+    document.getElementById("masteryEnabledSetting").value = String(settings.masteryEnabled);
+    document.getElementById("masteryThresholdSetting").value = settings.masteryThreshold;
+    document.getElementById("reorderEnabledSetting").value = String(settings.reorderEnabled);
+    document.getElementById("answerMarkDurationSetting").value = settings.answerMarkDurationMs;
+    document.getElementById("selfReviewEnabled").value = String(settings.selfReviewEnabled);
+
+    updateCurrentDayLabel();
+
+    createSelfReviewGrid(settings.selfReviewMap);
+}
+
+
+
+function updateCurrentDayLabel() {
+    const schedule = getTodaySchedule();
+    document.getElementById("currentDayLabel").textContent =
+        `${schedule.day}日目（${schedule.set}セット目・${schedule.dayInSet}日目）`;
+}
+
+document.getElementById("resetDayButton").addEventListener("click", () => {
+    if (!confirm("学習日数を1日目にリセットします。よろしいですか？")) return;
+
+    resetStudyDay();
+    updateCurrentDayLabel();
+    document.getElementById("dayAdjustMessage").textContent = "1日目にリセットしました。";
+});
+
+document.getElementById("goBackDaysButton").addEventListener("click", () => {
+    const input = document.getElementById("goBackDaysInput");
+    const days = Math.max(1, Math.min(365, Number(input.value) || 1));
+    input.value = days;
+
+    if (!confirm(`学習日数を${days}日前に戻します。よろしいですか？`)) return;
+
+    goBackStudyDays(days);
+    updateCurrentDayLabel();
+    document.getElementById("dayAdjustMessage").textContent = `${days}日前に戻しました。`;
+});
+
+document.getElementById("goForwardDaysButton").addEventListener("click", () => {
+    const input = document.getElementById("goForwardDaysInput");
+    const days = Math.max(1, Math.min(365, Number(input.value) || 1));
+    input.value = days;
+
+    if (!confirm(`学習日数を${days}日進めます。よろしいですか？`)) return;
+
+    goForwardStudyDays(days);
+    updateCurrentDayLabel();
+    document.getElementById("dayAdjustMessage").textContent = `${days}日進めました。`;
+});
+
+
+
+const selfReviewLabels = {
+    topLeft: "左上",
+    topCenter: "中央上",
+    topRight: "右上",
+    middleLeft: "左中",
+    center: "中央",
+    middleRight: "右中",
+    bottomLeft: "左下",
+    bottomCenter: "中央下",
+    bottomRight: "右下"
+};
+
+const answerLabels = {
+    again: "もう一度",
+    fuzzy: "うろ覚え",
+    perfect: "完璧",
+    nothing: "反応なし"
+};
+
+function createSelfReviewGrid(map) {
+    const grid = document.getElementById("selfReviewGrid");
+    grid.innerHTML = "";
+
+    Object.keys(selfReviewLabels).forEach(position => {
+        const cell = document.createElement("div");
+        cell.className = "self-review-cell";
+
+        const label = document.createElement("span");
+        label.className = "self-review-cell-label";
+        label.textContent = selfReviewLabels[position];
+
+        const select = document.createElement("select");
+        select.dataset.position = position;
+
+        Object.keys(answerLabels).forEach(answer => {
+            const option = document.createElement("option");
+            option.value = answer;
+            option.textContent = answerLabels[answer];
+            if (map[position] === answer) option.selected = true;
+            select.appendChild(option);
+        });
+
+        select.addEventListener("change", saveSelfReviewSettings);
+
+        cell.appendChild(label);
+        cell.appendChild(select);
+        grid.appendChild(cell);
+    });
+}
+
+function saveSelfReviewSettings() {
+    const settings = getSettings();
+
+    document.querySelectorAll("#selfReviewGrid select").forEach(select => {
+        settings.selfReviewMap[select.dataset.position] = select.value;
+    });
+
+    saveSettings(settings);
+    showSaveMessage();
+}
+
+
+
+let saveMessageTimer;
+
+function showSaveMessage() {
+    const message = document.getElementById("saveMessage");
+    message.textContent = "保存しました";
+
+    clearTimeout(saveMessageTimer);
+    saveMessageTimer = setTimeout(() => {
+        message.textContent = "";
+    }, 1200);
+}
+
+
+
+function loadAiSettingsUI() {
+    const settings = getSettings();
+    document.getElementById("aiEnabledSetting").value = settings.aiEnabled ? "true" : "false";
+    document.getElementById("aiEndpointSetting").value = settings.aiEndpoint || DEFAULT_SETTINGS.aiEndpoint;
+    document.getElementById("aiModelSetting").value = settings.aiModel || DEFAULT_SETTINGS.aiModel;
+    document.getElementById("aiApiKeySetting").value = settings.aiApiKey || "";
+    document.getElementById("aiDetailSetting").value = settings.aiDetail || "normal";
+}
+
+function saveAiSettingsFromUI() {
+    const settings = getSettings();
+    settings.aiEnabled = document.getElementById("aiEnabledSetting").value === "true";
+    settings.aiEndpoint = document.getElementById("aiEndpointSetting").value.trim() || DEFAULT_SETTINGS.aiEndpoint;
+    settings.aiModel = document.getElementById("aiModelSetting").value.trim() || DEFAULT_SETTINGS.aiModel;
+    settings.aiApiKey = document.getElementById("aiApiKeySetting").value.trim();
+    settings.aiDetail = document.getElementById("aiDetailSetting").value;
+    saveSettings(settings);
+    document.getElementById("aiSaveMessage").textContent = "保存しました";
+    setTimeout(() => document.getElementById("aiSaveMessage").textContent = "", 1200);
+}
+
+["aiEnabledSetting", "aiEndpointSetting", "aiModelSetting", "aiApiKeySetting", "aiDetailSetting"].forEach(id => {
+    document.getElementById(id).addEventListener("change", saveAiSettingsFromUI);
+});
+
+document.getElementById("volumeSetting").addEventListener("input", event => {
+    const settings = getSettings();
+    settings.volume = Number(event.target.value);
+    document.getElementById("volumeValue").textContent = `${settings.volume}%`;
+    saveSettings(settings);
+});
+
+document.getElementById("themeSetting").addEventListener("change", event => {
+    const settings = getSettings();
+    settings.theme = event.target.value;
+    saveSettings(settings);
+    applyTheme();
+    showSaveMessage();
+});
+
+document.getElementById("againDelaySetting").addEventListener("change", event => {
+    const settings = getSettings();
+    let value = Number(event.target.value);
+    value = Math.max(1, Math.min(3600, value));
+    settings.againDelaySeconds = value;
+    event.target.value = value;
+    saveSettings(settings);
+    showSaveMessage();
+});
+
+document.getElementById("dailyWordSetting").addEventListener("change", event => {
+    const settings = getSettings();
+    let value = Number(event.target.value);
+    value = Math.max(1, Math.min(10000, value));
+    settings.dailyWordCount = value;
+    event.target.value = value;
+    saveSettings(settings);
+    updateHome();
+    showSaveMessage();
+});
+
+document.getElementById("extraReviewLimitSetting").addEventListener("change", event => {
+    const settings = getSettings();
+    let value = Number(event.target.value);
+    value = Math.max(0, Math.min(500, value || 0));
+    settings.extraReviewLimit = value;
+    event.target.value = value;
+    saveSettings(settings);
+    updateHome();
+    showSaveMessage();
+});
+
+document.getElementById("masteryEnabledSetting").addEventListener("change", event => {
+    const settings = getSettings();
+    settings.masteryEnabled = event.target.value === "true";
+    saveSettings(settings);
+    showSaveMessage();
+});
+
+document.getElementById("masteryThresholdSetting").addEventListener("change", event => {
+    const settings = getSettings();
+    let value = Number(event.target.value);
+    value = Math.max(1, Math.min(50, value || DEFAULT_SETTINGS.masteryThreshold));
+    settings.masteryThreshold = value;
+    event.target.value = value;
+    saveSettings(settings);
+    showSaveMessage();
+});
+
+document.getElementById("reorderEnabledSetting").addEventListener("change", event => {
+    const settings = getSettings();
+    settings.reorderEnabled = event.target.value === "true";
+    saveSettings(settings);
+    showSaveMessage();
+});
+
+document.getElementById("answerMarkDurationSetting").addEventListener("change", event => {
+    const settings = getSettings();
+    let value = Number(event.target.value);
+    value = Math.max(100, Math.min(3000, value || DEFAULT_SETTINGS.answerMarkDurationMs));
+    settings.answerMarkDurationMs = value;
+    event.target.value = value;
+    saveSettings(settings);
+    showSaveMessage();
+});
+
+document.getElementById("selfReviewEnabled").addEventListener("change", event => {
+    const settings = getSettings();
+    settings.selfReviewEnabled = event.target.value === "true";
+    saveSettings(settings);
+    showSaveMessage();
+});
+
+
+
+function speak(text, lang) {
+    if (!("speechSynthesis" in window)) return;
+    if (!text) return;
+
+    const settings = getSettings();
+    const volume = Number(settings.volume);
+    if (!volume || volume <= 0) return;
+
+    try {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = lang;
+        utterance.volume = Math.min(1, Math.max(0, volume / 100));
+        window.speechSynthesis.speak(utterance);
+    } catch (e) {
+        
+    }
+}
+
+function speakEnglish(text) {
+    speak(text, "en-US");
+}
+
+function speakJapanese(text) {
+    speak(text, "ja-JP");
+}
+
+
+
+let studyQueue = [];
+let currentIndex = 0;
+let currentWord = null;
+let againWaiting = [];   
+let waitingTimer = null;
+let markTimer = null;
+let cardHistory = [];    
+
+let currentSessionType = "daily";   
+let currentSessionRangeKey = null;  
+let practiceResults = {};           
+let practiceQueueSnapshot = [];     
+let practiceQuizMode = false;       
+let choiceAnswered = false;         
+
+
+
+function getAnswerMarkDuration() {
+    const settings = getSettings();
+    const value = Number(settings.answerMarkDurationMs);
+    return Number.isFinite(value) && value > 0 ? value : DEFAULT_SETTINGS.answerMarkDurationMs;
+}
+
+const answerMarkConfig = {
+    again: { text: "もう一度", icon: "↺", className: "mark-again" },
+    fuzzy: { text: "うろ覚え", icon: "△", className: "mark-fuzzy" },
+    perfect: { text: "完璧", icon: "✓", className: "mark-perfect" }
+};
+
+function showAnswerMark(answer) {
+    const config = answerMarkConfig[answer];
+    if (!config) return;
+
+    const markEl = document.getElementById("answerMark");
+
+    markEl.className = `answer-mark ${config.className}`;
+    markEl.innerHTML =
+        `<span class="mark-icon">${config.icon}</span>` +
+        `<span class="mark-text">${config.text}</span>`;
+
+    
+    void markEl.offsetWidth;
+    markEl.classList.add("show");
+
+    const duration = getAnswerMarkDuration();
+    const fadeBuffer = Math.min(150, Math.floor(duration * 0.3));
+
+    clearTimeout(markTimer);
+    markTimer = setTimeout(() => {
+        markEl.classList.remove("show");
+    }, Math.max(0, duration - fadeBuffer));
+}
+
+function hideAnswerMark() {
+    clearTimeout(markTimer);
+    document.getElementById("answerMark").classList.remove("show");
+}
+
+function showStudyScreen() {
+    document.getElementById("homeScreen").style.display = "none";
+    document.getElementById("settingsScreen").style.display = "none";
+    document.getElementById("practiceSetupScreen").style.display = "none";
+    document.getElementById("reviewSetupScreen").style.display = "none";
+    document.getElementById("studyScreen").style.display = "flex";
+
+    const isQuizMode = currentSessionType === "practice" && practiceQuizMode;
+    document.getElementById("studyScreen").classList.toggle("quiz-mode", isQuizMode);
+}
+
+function updateStudyBackButtonLabel() {
+    document.getElementById("studyBackButton").textContent =
+        currentSessionType === "practice" ? "終了" : "‹ ホーム";
+}
+
+
+
+function interleaveEvenly(base, inserts) {
+    if (inserts.length === 0) return [...base];
+
+    const result = [];
+    const totalLength = base.length + inserts.length;
+    let insertIndex = 0;
+    let baseIndex = 0;
+
+    for (let i = 0; i < totalLength; i++) {
+        const expectedInsertCount = Math.round(((i + 1) * inserts.length) / totalLength);
+
+        if (expectedInsertCount > insertIndex && insertIndex < inserts.length) {
+            result.push(inserts[insertIndex]);
+            insertIndex++;
+        } else if (baseIndex < base.length) {
+            result.push(base[baseIndex]);
+            baseIndex++;
+        } else if (insertIndex < inserts.length) {
+            result.push(inserts[insertIndex]);
+            insertIndex++;
+        }
+    }
+
+    return result;
+}
+
+function buildStudyQueue(words) {
+    const settings = getSettings();
+    const schedule = getTodaySchedule();
+
+    
+    const isRepeat = schedule.set >= 2;
+
+    if (settings.reorderEnabled && isRepeat) {
+        const notPerfect = words.filter(word => word.status !== "perfect");
+        const perfect = words.filter(word => word.status === "perfect");
+        return interleaveEvenly(notPerfect, perfect);
+    }
+
+    return words;
+}
+
+
+
+
+
+function getDueMasteredWords(limit) {
+    if (limit <= 0) return [];
+
+    const now = Date.now();
+    const words = getWords();
+
+    const due = words.filter(word => word.status === "mastered" && (!word.dueDate || word.dueDate <= now));
+    due.sort((a, b) => (a.dueDate || 0) - (b.dueDate || 0));
+
+    return due.slice(0, limit).map(word => ({ ...word, isExtraReview: true }));
+}
+
+function startStudy() {
+    const allTodayWords = getTodayWords();
+
+    if (allTodayWords.length === 0) {
+        alert("今日の学習対象単語がありません。");
+        return;
+    }
+
+    const words = getTodayStudyWords();
+    const settings = getSettings();
+    const extraLimit = Math.max(0, Number(settings.extraReviewLimit) || 0);
+    const extraWords = getDueMasteredWords(extraLimit);
+
+    if (words.length === 0 && extraWords.length === 0) {
+        alert("今日の対象単語は、すでにすべて「完璧」または「うろ覚え」として学習済みです。\n次の機会にまた表示されます。");
+        return;
+    }
+
+    const schedule = getTodaySchedule();
+    const rangeKey = getRangeKey(schedule);
+
+    let queue = buildStudyQueue(words);
+
+    
+    const incompleteMap = getIncompleteMap();
+    const pendingIds = incompleteMap[rangeKey] || [];
+
+    if (pendingIds.length > 0) {
+        const pendingSet = new Set(pendingIds);
+        const pendingWords = queue.filter(word => pendingSet.has(word.id));
+        const restWords = queue.filter(word => !pendingSet.has(word.id));
+
+        pendingWords.sort((a, b) => pendingIds.indexOf(a.id) - pendingIds.indexOf(b.id));
+
+        queue = [...pendingWords, ...restWords];
+    }
+
+    if (incompleteMap[rangeKey]) {
+        delete incompleteMap[rangeKey];
+        saveIncompleteMap(incompleteMap);
+    }
+
+    currentSessionType = "daily";
+    currentSessionRangeKey = rangeKey;
+
+    
+    studyQueue = [...queue.map(word => ({ ...word })), ...extraWords];
+    currentIndex = 0;
+    currentWord = null;
+    againWaiting = [];
+    cardHistory = [];
+    clearTimeout(waitingTimer);
+
+    updateStudyBackButtonLabel();
+    showStudyScreen();
+    showCurrentCard();
+}
+
+
+
+function pickReadyWaitingWord() {
+    const now = Date.now();
+
+    for (let i = 0; i < againWaiting.length; i++) {
+        if (againWaiting[i].availableAt <= now) {
+            return againWaiting.splice(i, 1)[0].word;
+        }
+    }
+
+    return null;
+}
+
+function showCurrentCard() {
+    clearTimeout(waitingTimer);
+
+    const waitingWord = pickReadyWaitingWord();
+    if (waitingWord) {
+        displayCard(waitingWord);
+        return;
+    }
+
+    if (currentIndex < studyQueue.length) {
+        const word = studyQueue[currentIndex];
+        currentIndex++;
+        displayCard(word);
+        return;
+    }
+
+    if (againWaiting.length > 0) {
+        
+        const earliest = Math.min(...againWaiting.map(item => item.availableAt));
+        const delay = Math.max(0, earliest - Date.now());
+
+        const card = document.getElementById("wordCard");
+        card.classList.remove("show-answer");
+
+        document.getElementById("wordText").textContent = "少し待ってね";
+        document.getElementById("meaningText").textContent = "";
+        document.getElementById("tapHint").textContent = "「もう一度」の単語がまもなく表示されます";
+
+        waitingTimer = setTimeout(showCurrentCard, delay + 50);
+        return;
+    }
+
+    finishStudy();
+}
+
+function displayCard(word) {
+    currentWord = word;
+
+    hideAnswerMark();
+
+    const card = document.getElementById("wordCard");
+    card.classList.remove("show-answer");
+
+    document.getElementById("wordText").textContent = word.word;
+    document.getElementById("meaningText").textContent = word.meaning;
+    document.getElementById("tapHint").textContent = "タップして答えを見る";
+
+    document.getElementById("extraReviewBadge").style.display = word.isExtraReview ? "block" : "none";
+
+    const total = studyQueue.length;
+    const shown = Math.min(currentIndex, total);
+    document.getElementById("studyProgress").textContent = `${shown} / ${total}`;
+
+    const isQuizMode = currentSessionType === "practice" && practiceQuizMode;
+    if (isQuizMode) {
+        renderChoiceOptions(word);
+    }
+
+    window.speechSynthesis && window.speechSynthesis.cancel();
+    speakEnglish(word.word);
+}
+
+
+
+function buildChoiceOptions(word) {
+    const candidatePools = [
+        studyQueue.filter(candidate => candidate.id !== word.id),
+        practiceQueueSnapshot.filter(candidate => candidate.id !== word.id),
+        getWords().filter(candidate => candidate.id !== word.id)
+    ];
+
+    const usedMeanings = new Set([word.meaning]);
+    const distractors = [];
+
+    for (const pool of candidatePools) {
+        if (distractors.length >= 3) break;
+
+        const shuffledPool = shuffleArray(pool);
+        for (const candidate of shuffledPool) {
+            if (distractors.length >= 3) break;
+            if (usedMeanings.has(candidate.meaning)) continue;
+
+            usedMeanings.add(candidate.meaning);
+            distractors.push(candidate.meaning);
+        }
+    }
+
+    const options = shuffleArray([word.meaning, ...distractors]);
+    return options;
+}
+
+function renderChoiceOptions(word) {
+    choiceAnswered = false;
+
+    const container = document.getElementById("choiceOptions");
+    container.innerHTML = "";
+
+    const options = buildChoiceOptions(word);
+
+    options.forEach(optionText => {
+        const button = document.createElement("button");
+        button.className = "choice-button";
+        button.type = "button";
+        button.textContent = optionText;
+        button.addEventListener("click", () => handleChoiceClick(button, { text: optionText, isDontKnow: false }, word));
+        container.appendChild(button);
+    });
+
+    const dontKnowButton = document.createElement("button");
+    dontKnowButton.className = "choice-button choice-dontknow";
+    dontKnowButton.type = "button";
+    dontKnowButton.textContent = "分からない";
+    dontKnowButton.addEventListener("click", () => handleChoiceClick(dontKnowButton, { text: "分からない", isDontKnow: true }, word));
+    container.appendChild(dontKnowButton);
+}
+
+function handleChoiceClick(selectedButton, option, word) {
+    if (choiceAnswered) return;
+    choiceAnswered = true;
+
+    const isCorrect = !option.isDontKnow && option.text === word.meaning;
+
+    if (word.meaning) speakJapanese(word.meaning);
+
+    Array.from(document.getElementById("choiceOptions").children).forEach(button => {
+        button.disabled = true;
+        if (!button.classList.contains("choice-dontknow") && button.textContent === word.meaning) {
+            button.classList.add("correct");
+        } else if (button === selectedButton && !option.isDontKnow) {
+            button.classList.add("incorrect");
+        } else if (button === selectedButton && option.isDontKnow) {
+            button.classList.add("selected-dontknow");
+        }
+    });
+
+    setTimeout(() => {
+        answerCard(isCorrect ? "perfect" : "again");
+    }, 500);
+}
+
+
+
+function handleCardZoneTap(position) {
+    const card = document.getElementById("wordCard");
+
+    if (!card.classList.contains("show-answer")) {
+        card.classList.add("show-answer");
+        document.getElementById("tapHint").textContent = "回答を選択してください";
+        if (currentWord) speakJapanese(currentWord.meaning);
+        return;
+    }
+
+    const settings = getSettings();
+    if (!settings.selfReviewEnabled) return;
+
+    const action = settings.selfReviewMap[position];
+    if (!action || action === "nothing") return;
+
+    answerCard(action);
+}
+
+
+function getZonePosition(clientX, clientY) {
+    const overlay = document.getElementById("selfReviewOverlay");
+    const rect = overlay.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return "center";
+
+    const col = Math.min(2, Math.max(0, Math.floor((clientX - rect.left) / (rect.width / 3))));
+    const row = Math.min(2, Math.max(0, Math.floor((clientY - rect.top) / (rect.height / 3))));
+
+    if (row === 1 && col === 1) return "center";
+
+    const rowNames = ["top", "middle", "bottom"];
+    const colNames = ["Left", "Center", "Right"];
+    return rowNames[row] + colNames[col];
+}
+
+let longPressTimer = null;
+let longPressTriggered = false;
+let suppressNextCardClickUntil = 0;
+
+function cancelLongPressTimer() {
+    if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+    }
+}
+
+function startLongPressGuard(event) {
+    if (event.pointerType !== "touch" && event.pointerType !== "pen") return;
+    longPressTriggered = false;
+    cancelLongPressTimer();
+    longPressTimer = setTimeout(() => {
+        longPressTriggered = true;
+        suppressNextCardClickUntil = Date.now() + 1200;
+    }, 450);
+}
+
+function endLongPressGuard() {
+    cancelLongPressTimer();
+}
+
+document.querySelectorAll(".sr-zone").forEach(zone => {
+    zone.addEventListener("click", event => {
+        if (Date.now() < suppressNextCardClickUntil || longPressTriggered) {
+            event.preventDefault();
+            event.stopPropagation();
+            longPressTriggered = false;
+            return;
+        }
+        handleCardZoneTap(zone.dataset.position);
+    });
+});
+
+["wordText", "meaningText"].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener("pointerdown", startLongPressGuard);
+    el.addEventListener("pointerup", endLongPressGuard);
+    el.addEventListener("pointercancel", endLongPressGuard);
+    el.addEventListener("pointerleave", endLongPressGuard);
+    el.addEventListener("click", event => {
+        if (document.getElementById("studyScreen").classList.contains("quiz-mode")) return;
+        if (Date.now() < suppressNextCardClickUntil || longPressTriggered) {
+            event.preventDefault();
+            event.stopPropagation();
+            longPressTriggered = false;
+            return;
+        }
+        const position = getZonePosition(event.clientX, event.clientY);
+        handleCardZoneTap(position);
+    });
+});
+
+document.addEventListener("click", event => {
+    if (Date.now() < suppressNextCardClickUntil && event.target.closest && event.target.closest("#wordCard")) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+}, true);
+
+
+
+document.getElementById("replayAudioButton").addEventListener("click", event => {
+    event.stopPropagation();
+    if (!currentWord) return;
+
+    window.speechSynthesis && window.speechSynthesis.cancel();
+
+    const card = document.getElementById("wordCard");
+    speakEnglish(currentWord.word);
+
+    if (card.classList.contains("show-answer")) {
+        speakJapanese(currentWord.meaning);
+    }
+});
+
+
+
+document.getElementById("studyPrevButton").addEventListener("click", () => {
+    if (cardHistory.length === 0) {
+        alert("これより前のカードはありません。");
+        return;
+    }
+
+    clearTimeout(waitingTimer);
+    clearTimeout(markTimer);
+
+    const previousWord = cardHistory.pop();
+    const latest = getLatestWordForDisplay(previousWord.id) || previousWord;
+
+    displayCard(latest);
+});
+
+
+
+function openEditModal() {
+    if (!currentWord) return;
+
+    const words = getWords();
+    const target = words.find(word => word.id === currentWord.id);
+    if (!target) return;
+
+    window.speechSynthesis && window.speechSynthesis.cancel();
+
+    document.getElementById("editModalId").textContent = `#${target.id}`;
+    document.getElementById("editModalWord").value = target.word;
+    document.getElementById("editModalMeaning").value = target.meaning;
+    document.getElementById("editModalStatus").value = target.status || "unlearned";
+
+    document.getElementById("editModalOverlay").classList.add("show");
+}
+
+function closeEditModal() {
+    document.getElementById("editModalOverlay").classList.remove("show");
+}
+
+function saveEditModal() {
+    if (!currentWord) {
+        closeEditModal();
+        return;
+    }
+
+    const words = getWords();
+    const target = words.find(word => word.id === currentWord.id);
+
+    if (!target) {
+        closeEditModal();
+        return;
+    }
+
+    target.word = document.getElementById("editModalWord").value;
+    target.meaning = document.getElementById("editModalMeaning").value;
+    target.status = document.getElementById("editModalStatus").value;
+
+    saveWords(words);
+
+    
+    currentWord = { ...target };
+    document.getElementById("wordText").textContent = target.word;
+    document.getElementById("meaningText").textContent = target.meaning;
+
+    closeEditModal();
+}
+
+document.getElementById("studyEditButton").addEventListener("click", openEditModal);
+document.getElementById("editModalCancel").addEventListener("click", closeEditModal);
+document.getElementById("editModalSave").addEventListener("click", saveEditModal);
+
+
+
+
+
+function computeAnswerResult(target, answer, now, settings) {
+    const delayMs = Number(settings.againDelaySeconds) * 1000;
+
+    if (answer === "again") {
+        return {
+            status: "unlearned",
+            reviewCount: target.reviewCount || 0,
+            nextReview: now + delayMs
+        };
+    }
+
+    const masteryEnabled = settings.masteryEnabled;
+    const threshold = Math.max(1, Number(settings.masteryThreshold) || DEFAULT_SETTINGS.masteryThreshold);
+    const previousCount = target.reviewCount || 0;
+    const isTestDue = masteryEnabled && target.status !== "mastered" && previousCount >= threshold;
+
+    if (isTestDue) {
+        if (answer === "perfect") {
+            
+            return {
+                status: "mastered",
+                reviewCount: 0,
+                nextReview: null,
+                stability: 1,
+                difficulty: 5,
+                dueDate: now + 24 * 60 * 60 * 1000
+            };
+        }
+
+        
+        return {
+            status: "fuzzy",
+            reviewCount: Math.max(0, previousCount - 2),
+            nextReview: null
+        };
+    }
 
     return {
-
-        number:
-            parseInt(match[1], 10),
-
-        word:
-            match[2],
-
-        meaning:
-            match[3].trim()
-
+        status: answer, 
+        reviewCount: previousCount + 1,
+        nextReview: null
     };
-
 }
 
 
-// ==================================================
-// TSVフィールドの安全処理
-// ==================================================
 
-function escapeField(value) {
+function computeExtraReviewResult(target, answer, now) {
+    const prevStability = Number(target.stability) > 0 ? Number(target.stability) : 1;
+    const prevDifficulty = Number(target.difficulty) > 0 ? Number(target.difficulty) : 5;
 
-    value = String(value);
+    let stability = prevStability;
+    let difficulty = prevDifficulty;
 
-
-    if (
-        value.includes("\t") ||
-        value.includes("\n") ||
-        value.includes("\r") ||
-        value.includes('"')
-    ) {
-
-        return '"' +
-            value.replace(/"/g, '""') +
-            '"';
-
+    if (answer === "again") {
+        stability = Math.max(0.5, prevStability * 0.5);
+        difficulty = Math.min(10, prevDifficulty + 1);
+    } else if (answer === "fuzzy") {
+        const growth = 1 + (11 - prevDifficulty) * 0.05;
+        stability = prevStability * growth;
+        difficulty = Math.min(10, prevDifficulty + 0.5);
+    } else {
+        
+        const growth = 1 + (11 - prevDifficulty) * 0.12;
+        stability = prevStability * growth;
+        difficulty = Math.max(1, prevDifficulty - 0.3);
     }
 
+    const targetRetention = 0.9;
+    const intervalDays = 9 * stability * (1 / targetRetention - 1);
+    const dueDate = now + Math.max(1, intervalDays) * 24 * 60 * 60 * 1000;
 
-    return value;
-
+    return {
+        status: "mastered",
+        reviewCount: 0,
+        nextReview: null,
+        stability,
+        difficulty,
+        dueDate
+    };
 }
 
+function answerCard(answer) {
+    if (!currentWord) return;
+    if (answer !== "again" && answer !== "fuzzy" && answer !== "perfect") return;
 
-// ==================================================
-// 4桁化
-// ==================================================
+    const words = getWords();
+    const target = words.find(word => word.id === currentWord.id);
+    if (!target) return;
 
-function formatNumber(number) {
+    const now = Date.now();
+    const settings = getSettings();
+    const delayMs = Number(settings.againDelaySeconds) * 1000;
+    const isExtraReview = Boolean(currentWord.isExtraReview);
 
-    return String(number).padStart(4, "0");
+    const result = isExtraReview
+        ? computeExtraReviewResult(target, answer, now)
+        : computeAnswerResult(target, answer, now, settings);
 
-}
+    if (currentSessionType === "practice") {
+        
+        
+        practiceResults[target.id] = {
+            status: result.status,
+            lastReviewed: now,
+            reviewCount: result.reviewCount,
+            stability: result.stability,
+            difficulty: result.difficulty,
+            dueDate: result.dueDate
+        };
 
+        const practiceCard = {
+            ...target,
+            ...practiceResults[target.id],
+            nextReview: result.nextReview,
+            isExtraReview
+        };
 
-// ==================================================
-// 生成
-// ==================================================
-
-function generate() {
-
-    const input =
-        document
-            .getElementById("input")
-            .value;
-
-
-    const deck =
-        document
-            .getElementById("deck")
-            .value
-            .trim();
-
-
-    const lines =
-        input.split(/\r?\n/);
-
-
-    const rows = [];
-
-    let skipped = 0;
-
-
-    // ----------------------------------------------
-    // 全行を解析
-    // ----------------------------------------------
-
-    for (const line of lines) {
-
-        if (!line.trim()) {
-            continue;
+        if (answer === "again" && !isExtraReview) {
+            againWaiting.push({ word: practiceCard, availableAt: now + delayMs });
         }
 
+        cardHistory.push({ ...target, status: result.status });
 
-        const data =
-            parseLine(line);
+    } else {
+        target.status = result.status;
+        target.lastReviewed = now;
+        target.nextReview = result.nextReview;
+        target.reviewCount = result.reviewCount;
+        if (result.stability !== undefined) target.stability = result.stability;
+        if (result.difficulty !== undefined) target.difficulty = result.difficulty;
+        if (result.dueDate !== undefined) target.dueDate = result.dueDate;
 
-
-        if (!data) {
-
-            skipped++;
-
-            continue;
-
+        if (answer === "again" && !isExtraReview) {
+            againWaiting.push({ word: { ...target, isExtraReview }, availableAt: now + delayMs });
         }
 
+        saveWords(words);
 
-        const number =
-            formatNumber(data.number);
-
-
-        rows.push([
-
-            number,
-
-            data.word,
-
-            data.meaning
-
-        ]);
-
+        cardHistory.push({ ...target });
     }
 
+    showAnswerMark(answer);
 
-    // ----------------------------------------------
-    // データがない場合
-    // ----------------------------------------------
+    currentWord = null;
 
-    if (rows.length === 0) {
+    setTimeout(() => {
+        showCurrentCard();
+    }, getAnswerMarkDuration());
+}
 
-        alert(
-            "読み取れるデータがありません。\n\n" +
-            "例：\n" +
-            "1 change 変える"
-        );
+document.querySelectorAll(".answer-button").forEach(button => {
+    button.addEventListener("click", event => {
+        event.stopPropagation();
+        answerCard(button.dataset.answer);
+    });
+});
 
+
+
+function getAiPrompt(word) {
+    const settings = getSettings();
+    const detail = settings.aiDetail === "short" ? "短く" : settings.aiDetail === "detailed" ? "詳しく" : "標準的な長さで";
+    return `英単語「${word.word}」について、日本語で${detail}解説してください。語源・語構成（接頭辞/語根/接尾辞）をできるだけ正確に説明し、現在の意味にどうつながるかを示してください。語源に諸説ある場合は断定せず、その点も明記してください。学習に役立つ覚え方があれば最後に1つだけ提案してください。単語の意味は「${word.meaning || "不明"}」です。`;
+}
+
+function extractApiText(data) {
+    if (typeof data?.output_text === "string") return data.output_text;
+    const texts = [];
+    for (const item of (data?.output || [])) {
+        for (const content of (item?.content || [])) {
+            if (content?.type === "output_text" && typeof content.text === "string") texts.push(content.text);
+        }
+    }
+    return texts.join("\n").trim();
+}
+
+async function askAiForCurrentWord() {
+    if (!currentWord) return;
+    const settings = getSettings();
+    const resultEl = document.getElementById("aiResult");
+    resultEl.textContent = "AIに質問しています…";
+    if (!settings.aiEnabled || !settings.aiApiKey) {
+        resultEl.textContent = "API設定がないため、ChatGPTを開いて質問する方式を使用してください。";
         return;
+    }
+    try {
+        const response = await fetch(settings.aiEndpoint, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${settings.aiApiKey}`
+            },
+            body: JSON.stringify({
+                model: settings.aiModel,
+                input: getAiPrompt(currentWord),
+                store: false
+            })
+        });
+        if (!response.ok) throw new Error(`API ${response.status}`);
+        const data = await response.json();
+        const text = extractApiText(data);
+        if (!text) throw new Error("empty response");
+        resultEl.textContent = text;
+    } catch (error) {
+        console.error(error);
+        resultEl.textContent = "API呼び出しに失敗しました。API URL・キー・CORS設定を確認してください。APIが使えない場合は「ChatGPTで聞く」を利用できます。";
+    }
+}
 
+function openAiModal() {
+    if (!currentWord) return;
+    document.getElementById("aiWordLabel").textContent = `${currentWord.word} ＝ ${currentWord.meaning || ""}`;
+    document.getElementById("aiResult").textContent = "語源を調べる準備ができました。";
+    document.getElementById("aiModalOverlay").classList.add("show");
+}
+
+function closeAiModal() {
+    document.getElementById("aiModalOverlay").classList.remove("show");
+}
+
+document.getElementById("studyAiButton").addEventListener("click", event => {
+    event.stopPropagation();
+    openAiModal();
+});
+document.getElementById("aiModalClose").addEventListener("click", closeAiModal);
+document.getElementById("aiModalOverlay").addEventListener("click", event => {
+    if (event.target.id === "aiModalOverlay") closeAiModal();
+});
+document.getElementById("askAiButton").addEventListener("click", askAiForCurrentWord);
+document.getElementById("openChatGptButton").addEventListener("click", () => {
+    if (!currentWord) return;
+    const prompt = getAiPrompt(currentWord);
+    window.open("https://chatgpt.com/?q=" + encodeURIComponent(prompt), "_blank", "noopener,noreferrer");
+});
+
+function getLatestWordForDisplay(id) {
+    const words = getWords();
+    const base = words.find(word => word.id === id);
+    if (!base) return null;
+
+    if (currentSessionType === "practice" && practiceResults[id]) {
+        return { ...base, status: practiceResults[id].status };
     }
 
-
-    // ==================================================
-    // Anki用ヘッダー
-    // ==================================================
-
-    const output = [];
-
-
-    output.push(
-        "#separator:tab"
-    );
-
-
-    output.push(
-        "#html:false"
-    );
-
-
-    output.push(
-        "#columns:Number\tFront\tBack"
-    );
-
-
-    // デッキ名が入力されている場合だけ追加
-    if (deck) {
-
-        output.push(
-            "#deck:" + deck
-        );
-
-    }
-
-
-    // 3フィールド用ノートタイプ
-    output.push(
-        "#notetype:Vocabulary 3 Fields"
-    );
-
-
-    output.push("");
-
-
-    // ==================================================
-    // データを書き込む
-    // ==================================================
-
-    for (const row of rows) {
-
-        output.push(
-
-            escapeField(row[0]) +
-            "\t" +
-            escapeField(row[1]) +
-            "\t" +
-            escapeField(row[2])
-
-        );
-
-    }
-
-
-    generatedText =
-        output.join("\n");
-
-
-    // ----------------------------------------------
-    // 生成結果を表示
-    // ----------------------------------------------
-
-    document
-        .getElementById("output")
-        .value =
-            generatedText;
-
-
-    // ----------------------------------------------
-    // ステータス
-    // ----------------------------------------------
-
-    document
-        .getElementById("status")
-        .textContent =
-
-            rows.length +
-            "件生成しました。" +
-
-            (
-                skipped > 0
-
-                    ? "　読み取れなかった行：" +
-                      skipped +
-                      "件"
-
-                    : ""
-            );
-
+    return { ...base };
 }
 
 
-// ==================================================
-// コピー
-// ==================================================
 
-document
-    .getElementById("copy")
-    .addEventListener(
-        "click",
-        async () => {
+function finishStudy() {
+    window.speechSynthesis && window.speechSynthesis.cancel();
+    clearTimeout(waitingTimer);
+    clearTimeout(markTimer);
 
-            if (!generatedText) {
+    document.getElementById("studyScreen").style.display = "none";
 
-                alert(
-                    "先に「生成」を押してください。"
-                );
+    const screen = document.getElementById("completeScreen");
+    screen.style.display = "flex";
 
-                return;
+    const homeButtonWrap = document.getElementById("completeHomeButtonWrap");
+    const practiceButtons = document.getElementById("completePracticeButtons");
+    const titleEl = document.getElementById("completeTitle");
 
-            }
+    if (currentSessionType === "daily" && currentSessionRangeKey) {
+        
+        const incompleteMap = getIncompleteMap();
+        delete incompleteMap[currentSessionRangeKey];
+        saveIncompleteMap(incompleteMap);
+    }
 
+    let words;
 
-            try {
+    if (currentSessionType === "practice") {
+        words = practiceQueueSnapshot.map(word => {
+            const result = practiceResults[word.id];
+            return result ? { ...word, status: result.status } : word;
+        });
 
-                await navigator.clipboard.writeText(
-                    generatedText
-                );
+        titleEl.textContent = "練習モード終了";
+        homeButtonWrap.style.display = "none";
+        practiceButtons.style.display = "flex";
 
-                alert("コピーしました。");
+    } else {
+        
+        
+        const latestWords = getWords();
+        const idSet = new Set(studyQueue.map(word => word.id));
+        words = latestWords.filter(word => idSet.has(word.id));
 
-            }
-            catch (error) {
+        titleEl.textContent = currentSessionType === "fuzzyReview" ? "復習完了" : "今日の学習完了";
+        homeButtonWrap.style.display = "block";
+        practiceButtons.style.display = "none";
+    }
 
-                const output =
-                    document
-                        .getElementById("output");
+    const mastered = words.filter(word => word.status === "mastered").length;
+    const perfect = words.filter(word => word.status === "perfect").length;
+    const fuzzy = words.filter(word => word.status === "fuzzy").length;
 
+    const label = currentSessionType === "practice" ? "今回の練習" : "今回の対象";
 
-                output.select();
+    const masteredLine = mastered > 0 ? `\n覚えた ${mastered}語` : "";
 
-
-                document.execCommand(
-                    "copy"
-                );
-
-
-                alert("コピーしました。");
-
-            }
-
-        }
-    );
-
-
-// ==================================================
-// ダウンロード
-// ==================================================
-
-document
-    .getElementById("download")
-    .addEventListener(
-        "click",
-        () => {
-
-            if (!generatedText) {
-
-                alert(
-                    "先に「生成」を押してください。"
-                );
-
-                return;
-
-            }
+    document.getElementById("completeText").textContent =
+        `${label} ${words.length}語\n完璧 ${perfect}語 ・ うろ覚え ${fuzzy}語${masteredLine}`;
+}
 
 
-            let filename =
-                document
-                    .getElementById("filename")
-                    .value
-                    .trim();
+
+function saveIncompleteIfNeeded() {
+    if (currentSessionType !== "daily" || !currentSessionRangeKey) return;
+
+    const remainingFromCurrent = currentWord ? [currentWord.id] : [];
+    const remainingFromQueue = studyQueue.slice(currentIndex).map(word => word.id);
+    const remainingFromWaiting = againWaiting.map(item => item.word.id);
+
+    const remainingIds = Array.from(new Set([
+        ...remainingFromCurrent,
+        ...remainingFromQueue,
+        ...remainingFromWaiting
+    ]));
+
+    const incompleteMap = getIncompleteMap();
+
+    if (remainingIds.length > 0) {
+        incompleteMap[currentSessionRangeKey] = remainingIds;
+    } else {
+        delete incompleteMap[currentSessionRangeKey];
+    }
+
+    saveIncompleteMap(incompleteMap);
+}
 
 
-            // ファイル名が空欄なら自動命名
-            if (!filename) {
 
-                filename =
-                    "anki_import.txt";
+function showHome() {
+    saveIncompleteIfNeeded();
 
-            }
+    clearTimeout(waitingTimer);
+    clearTimeout(markTimer);
+    window.speechSynthesis && window.speechSynthesis.cancel();
 
+    document.getElementById("studyScreen").style.display = "none";
+    document.getElementById("completeScreen").style.display = "none";
+    document.getElementById("settingsScreen").style.display = "none";
+    document.getElementById("practiceSetupScreen").style.display = "none";
+    document.getElementById("reviewSetupScreen").style.display = "none";
+    document.getElementById("homeScreen").style.display = "block";
 
-            // .txtがなければ追加
-            if (
-                !filename
-                    .toLowerCase()
-                    .endsWith(".txt")
-            ) {
+    updateHome();
+}
 
-                filename += ".txt";
+document.getElementById("studyBackButton").addEventListener("click", () => {
+    if (currentSessionType === "practice") {
+        
+        finishStudy();
+    } else {
+        showHome();
+    }
+});
 
-            }
+document.getElementById("completeHomeButton").addEventListener("click", showHome);
 
+document.getElementById("applyPracticeButton").addEventListener("click", () => {
+    const words = getWords();
 
-            // UTF-8 BOM
-            const bom =
-                "\uFEFF";
+    Object.keys(practiceResults).forEach(idKey => {
+        const id = Number(idKey);
+        const target = words.find(word => word.id === id);
+        if (!target) return;
 
+        const result = practiceResults[id];
 
-            const blob =
-                new Blob(
-                    [
-                        bom +
-                        generatedText
-                    ],
-                    {
-                        type:
-                            "text/plain;charset=utf-8"
-                    }
-                );
+        target.status = result.status;
+        target.lastReviewed = result.lastReviewed;
+        target.nextReview = null;
+        target.reviewCount = result.reviewCount || 0;
+        if (result.stability !== undefined && result.stability !== null) target.stability = result.stability;
+        if (result.difficulty !== undefined && result.difficulty !== null) target.difficulty = result.difficulty;
+        if (result.dueDate !== undefined && result.dueDate !== null) target.dueDate = result.dueDate;
+    });
 
+    saveWords(words);
 
-            const url =
-                URL.createObjectURL(blob);
+    practiceResults = {};
+    practiceQueueSnapshot = [];
 
+    document.getElementById("completeScreen").style.display = "none";
+    showHome();
+});
 
-            const a =
-                document.createElement("a");
+document.getElementById("discardPracticeButton").addEventListener("click", () => {
+    practiceResults = {};
+    practiceQueueSnapshot = [];
 
-
-            a.href =
-                url;
-
-
-            a.download =
-                filename;
-
-
-            document.body.appendChild(a);
-
-
-            a.click();
-
-
-            document.body.removeChild(a);
-
-
-            URL.revokeObjectURL(url);
-
-        }
-    );
+    document.getElementById("completeScreen").style.display = "none";
+    showHome();
+});
+document.getElementById("startStudyButton").addEventListener("click", startStudy);
 
 
-// ==================================================
-// 生成ボタン
-// ==================================================
 
-document
-    .getElementById("generate")
-    .addEventListener(
-        "click",
-        generate
-    );
+function getReviewChunks() {
+    const words = getWords();
+    if (words.length === 0) return [];
+
+    const settings = getSettings();
+    const dailyCount = Number(settings.dailyWordCount) || 200;
+    const maxId = words.reduce((max, word) => Math.max(max, word.id), 0);
+    const chunkCount = Math.ceil(maxId / dailyCount);
+
+    const chunks = [];
+    for (let i = 0; i < chunkCount; i++) {
+        const start = i * dailyCount + 1;
+        const end = (i + 1) * dailyCount;
+        chunks.push({ start, end, label: `${start} - ${end}` });
+    }
+    return chunks;
+}
+
+function renderReviewChunkList() {
+    const container = document.getElementById("reviewChunkList");
+    container.innerHTML = "";
+
+    const chunks = getReviewChunks();
+
+    if (chunks.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty-message";
+        empty.textContent = "単語データがありません。";
+        container.appendChild(empty);
+        return;
+    }
+
+    chunks.forEach(chunk => {
+        const item = document.createElement("label");
+        item.className = "chunk-checkbox-item";
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.dataset.start = chunk.start;
+        checkbox.dataset.end = chunk.end;
+        checkbox.addEventListener("change", updateReviewPoolMessage);
+
+        const text = document.createElement("span");
+        text.textContent = chunk.label;
+
+        item.appendChild(checkbox);
+        item.appendChild(text);
+        container.appendChild(item);
+    });
+}
+
+function getReviewSelectedStatuses() {
+    const statuses = [];
+    if (document.getElementById("reviewStatusPerfect").checked) statuses.push("perfect");
+    if (document.getElementById("reviewStatusFuzzy").checked) statuses.push("fuzzy");
+    if (document.getElementById("reviewStatusUnlearned").checked) statuses.push("unlearned");
+    if (document.getElementById("reviewStatusMastered").checked) statuses.push("mastered");
+    return statuses;
+}
+
+function getReviewSelectedRanges() {
+    const mode = document.getElementById("reviewRangeMode").value;
+    if (mode === "all") return null;
+
+    const checked = Array.from(document.querySelectorAll("#reviewChunkList input[type='checkbox']:checked"));
+    return checked.map(checkbox => ({
+        start: Number(checkbox.dataset.start),
+        end: Number(checkbox.dataset.end)
+    }));
+}
+
+function getReviewPool() {
+    const statuses = getReviewSelectedStatuses();
+    if (statuses.length === 0) return [];
+
+    const ranges = getReviewSelectedRanges();
+
+    let pool = getWords().filter(word => statuses.includes(word.status || "unlearned"));
+
+    if (ranges !== null) {
+        if (ranges.length === 0) return [];
+        pool = pool.filter(word => ranges.some(range => word.id >= range.start && word.id <= range.end));
+    }
+
+    return pool;
+}
+
+function updateReviewPoolMessage() {
+    const pool = getReviewPool();
+    const messageEl = document.getElementById("reviewPoolMessage");
+
+    if (getReviewSelectedStatuses().length === 0) {
+        messageEl.textContent = "対象にする暗記状況を1つ以上選んでください。";
+        return;
+    }
+
+    const mode = document.getElementById("reviewRangeMode").value;
+    if (mode === "chunks" && getReviewSelectedRanges().length === 0) {
+        messageEl.textContent = "対象にするまとまりを1つ以上選んでください。";
+        return;
+    }
+
+    messageEl.textContent = `対象：${pool.length}語`;
+}
+
+function showReviewSetup() {
+    document.getElementById("homeScreen").style.display = "none";
+    document.getElementById("reviewSetupScreen").style.display = "block";
+
+    renderReviewChunkList();
+    document.getElementById("reviewRangeMode").value = "all";
+    document.getElementById("reviewChunkListWrap").style.display = "none";
+    updateReviewPoolMessage();
+}
+
+function hideReviewSetup() {
+    document.getElementById("reviewSetupScreen").style.display = "none";
+    document.getElementById("homeScreen").style.display = "block";
+    updateHome();
+}
+
+document.getElementById("fuzzyReviewButton").addEventListener("click", showReviewSetup);
+document.getElementById("reviewSetupBackButton").addEventListener("click", hideReviewSetup);
+
+["reviewStatusPerfect", "reviewStatusFuzzy", "reviewStatusUnlearned", "reviewStatusMastered"].forEach(id => {
+    document.getElementById(id).addEventListener("change", updateReviewPoolMessage);
+});
+
+document.getElementById("reviewRangeMode").addEventListener("change", event => {
+    document.getElementById("reviewChunkListWrap").style.display =
+        event.target.value === "chunks" ? "block" : "none";
+    updateReviewPoolMessage();
+});
+
+document.getElementById("reviewStartButton").addEventListener("click", () => {
+    if (getReviewSelectedStatuses().length === 0) {
+        alert("対象にする暗記状況を1つ以上選んでください。");
+        return;
+    }
+
+    const mode = document.getElementById("reviewRangeMode").value;
+    if (mode === "chunks" && getReviewSelectedRanges().length === 0) {
+        alert("対象にするまとまりを1つ以上選んでください。");
+        return;
+    }
+
+    const pool = getReviewPool();
+
+    if (pool.length === 0) {
+        alert("条件に一致する単語がありません。");
+        return;
+    }
+
+    currentSessionType = "fuzzyReview";
+    currentSessionRangeKey = null;
+
+    studyQueue = pool
+        .slice()
+        .sort((a, b) => a.id - b.id)
+        .map(word => ({ ...word }));
+
+    currentIndex = 0;
+    currentWord = null;
+    againWaiting = [];
+    cardHistory = [];
+    clearTimeout(waitingTimer);
+
+    updateStudyBackButtonLabel();
+    showStudyScreen();
+    showCurrentCard();
+});
+
+
+
+function initialize() {
+    if (!localStorage.getItem(SETTINGS_STORAGE_KEY)) {
+        saveSettings(DEFAULT_SETTINGS);
+    }
+
+    applyTheme();
+    updateHome();
+}
+
+initialize();
 
 </script>
-
-</body>
-</html>
+</body></html>
