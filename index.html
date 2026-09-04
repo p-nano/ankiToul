@@ -1064,6 +1064,14 @@ input[type="text"].search-input {
 .ai-modal-header { display:flex; align-items:center; justify-content:space-between; gap:10px; }
 .ai-modal-header h3 { margin:0; }
 .ai-modal-close { width:38px; height:38px; border:none; border-radius:12px; background:var(--button-background); color:var(--text); font-size:24px; }
+.ai-prompt-label { display:block; margin-top:14px; margin-bottom:6px; font-weight:700; }
+.ai-prompt-textarea { width:100%; min-height:150px; box-sizing:border-box; resize:vertical; border:1px solid var(--border); border-radius:12px; padding:12px; background:var(--background); color:var(--text); font:inherit; }
+.ai-api-list { display:flex; flex-direction:column; gap:12px; margin-top:12px; }
+.ai-api-item { border:1px solid var(--border); border-radius:14px; padding:12px; }
+.ai-api-item .setting-row { margin:7px 0; }
+.ai-api-item input { width:58%; box-sizing:border-box; }
+.ai-api-meta { font-size:12px; opacity:.72; margin-top:6px; }
+
 .ai-word-label { margin-top:10px; font-size:14px; color:var(--secondary); font-weight:700; }
 .ai-result { white-space:pre-wrap; line-height:1.65; margin-top:14px; min-height:120px; padding:14px; border-radius:14px; background:var(--button-background); }
 @media (max-width:500px) { .study-word-tools { top:14px; left:14px; } }
@@ -1097,7 +1105,7 @@ input[type="text"].search-input {
 バックアップ文字列を貼り付けて復元します。現在保存されているデータは上書きされます。
 </div>
 <textarea id="restoreInput" class="data-textarea" placeholder="バックアップ文字列を貼り付け"></textarea>
-<div class="button-row"><button class="danger-button" id="restoreBackupButton">この内容で復元する</button></div><div class="save-message" id="backupMessage"></div></div><div class="setting-card"><h2 class="setting-title">語源AI</h2><div class="setting-description">学習中の英単語について、語源・由来・覚え方をAIに質問できます。APIを使う場合は下のURLとキーを設定してください。キーはこのブラウザのlocalStorageに保存されます。安全性を優先するなら、自分で用意したサーバー側プロキシをURLに設定してください。API未設定でも「ChatGPTで聞く」は使えます。</div><div class="setting-row"><span>AI APIを使用</span><select id="aiEnabledSetting"><option value="false">OFF（ChatGPTで開く）</option><option value="true">ON（APIを使う）</option></select></div><div class="setting-row"><span>API URL</span><input type="text" id="aiEndpointSetting" style="width: 58%;" value="https://api.openai.com/v1/responses"></div><div class="setting-row"><span>モデル</span><input type="text" id="aiModelSetting" style="width: 58%;" value="gpt-5.6-luna"></div><div class="setting-row"><span>APIキー</span><input type="password" id="aiApiKeySetting" style="width: 58%;" placeholder="sk-..."></div><div class="setting-row"><span>回答の長さ</span><select id="aiDetailSetting" style="min-width: 180px;"><option value="short">短め</option><option value="normal" selected>標準</option><option value="detailed">詳しめ</option></select></div><div class="save-message" id="aiSaveMessage"></div></div><div class="setting-card"><h2 class="setting-title">単語の並び順をシャッフル</h2><div class="setting-description">
+<div class="button-row"><button class="danger-button" id="restoreBackupButton">この内容で復元する</button></div><div class="save-message" id="backupMessage"></div></div><div class="setting-card"><h2 class="setting-title">語源AI</h2><div class="setting-description">学習中の英単語について、語源・由来・覚え方をAIに質問できます。APIは上から順番に使用し、1つのAPIにつき49回まで自動で使った後、次のAPIへ切り替えます。APIキーはこのブラウザのlocalStorageに保存されます。</div><div class="setting-row"><span>AI APIを使用</span><select id="aiEnabledSetting"><option value="false">OFF（ChatGPTで開く）</option><option value="true">ON（APIを使う）</option></select></div><div class="setting-row"><span>回答の長さ</span><select id="aiDetailSetting" style="min-width: 180px;"><option value="short">短め</option><option value="normal" selected>標準</option><option value="detailed">詳しめ</option></select></div><label class="ai-prompt-label" for="aiPromptSetting">デフォルトの命令文</label><textarea id="aiPromptSetting" class="ai-prompt-textarea"></textarea><div class="setting-description">{word} は英単語、{meaning} は日本語訳に置き換わります。ここで変更した命令文が「AIに聞く」「語源AIで生成をし直す」の両方に使われます。</div><div class="ai-api-list" id="aiApiList"></div><div class="button-row"><button class="secondary-button" id="addAiApiButton">＋ APIを追加</button><button class="secondary-button" id="resetAiApiUsageButton">使用回数をリセット</button></div><div class="save-message" id="aiSaveMessage"></div></div><div class="setting-card"><h2 class="setting-title">単語の並び順をシャッフル</h2><div class="setting-description">
 登録されている単語（1番〜最大番号）の中身を、1回だけランダムに入れ替えて固定します。番号（1日の学習範囲を決める基準）自体は変わりませんが、どの単語がどの番号＝どの日の学習範囲に入るかがランダムに変わります。実行後は自動的に元へは戻せないため、事前に上のバックアップ文字列を作成しておくことをおすすめします。
 </div><div class="button-row"><button class="danger-button" id="shuffleWordsButton">今の単語データを1回だけランダムに並び替える</button></div><div class="save-message" id="shuffleMessage"></div></div><div class="setting-card"><h2 class="setting-title">1日の暗記量</h2><div class="setting-description">
 1日に新しく学習する単語数です。変更すると学習範囲（ルール）も連動して変わります。
@@ -1130,7 +1138,7 @@ ONにすると、同じ範囲を2回目以降に学習する時、「うろ覚�
 通常は単語をタップして答えを確認します。4択にすると、英単語に対する意味を4つの選択肢から選ぶ形式で練習できます。
 </div><div class="setting-row"><span>形式</span><select id="practiceModeSetting"><option value="flip" selected>通常（タップしてめくる）</option><option value="choice4">4択（選択式）</option></select></div></div><div class="setting-card"><h2 class="setting-title">出題順</h2><div class="setting-row"><span>ランダムにする</span><select id="practiceRandomSetting"><option value="true">ON</option><option value="false" selected>OFF</option></select></div></div><div class="setting-card"><h2 class="setting-title">練習する単語数</h2><div class="setting-description">
 対象に含まれる単語数の範囲で指定できます。
-</div><div class="setting-row"><span>単語数</span><div><input type="number" id="practiceCountInput" min="1" step="1"><span>語</span></div></div></div><div class="home-card" style="padding: 0; background: transparent; margin-top: 0;"><button class="primary-button" id="practiceStartButton">練習を始める</button></div></div></div><div id="studyScreen"><div class="self-review-overlay" id="selfReviewOverlay"><div class="sr-zone" data-position="topLeft"></div><div class="sr-zone" data-position="topCenter"></div><div class="sr-zone" data-position="topRight"></div><div class="sr-zone" data-position="middleLeft"></div><div class="sr-zone" data-position="center"></div><div class="sr-zone" data-position="middleRight"></div><div class="sr-zone" data-position="bottomLeft"></div><div class="sr-zone" data-position="bottomCenter"></div><div class="sr-zone" data-position="bottomRight"></div></div><div class="study-top-bar"><button class="study-back-button" id="studyBackButton">‹ ホーム</button><div class="study-top-right"><div class="study-progress" id="studyProgress">0 / 0</div><button class="study-icon-button" id="studyPrevButton" title="1つ前のカードに戻る">⟲</button><button class="study-icon-button" id="studyEditButton" title="この単語データを編集">✎</button></div></div><div class="card-area"><div class="word-card" id="wordCard"><div class="extra-review-badge" id="extraReviewBadge" style="display:none;">＋α復習</div><button class="replay-audio-button" id="replayAudioButton" title="音声をもう一度再生" aria-label="音声をもう一度再生"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg></button><div class="study-word-tools"><button class="study-ai-button" id="studyAiButton" type="button" title="この単語の語源をAIに聞く">語源AI</button><button class="study-core-button" id="studyCoreButton" type="button" title="この単語の核心を入力する">核心</button></div><div class="word" id="wordText">--</div><div class="meaning" id="meaningText">--</div><div class="core-answer" id="coreAnswer" style="display:none;"></div><div class="tap-hint" id="tapHint">タップして答えを見る</div></div></div><div class="answer-mark" id="answerMark"></div><div class="choice-area" id="choiceArea"><div class="choice-options" id="choiceOptions"></div></div><div class="answer-area"><button class="answer-button answer-again" data-answer="again">もう一度</button><button class="answer-button answer-fuzzy" data-answer="fuzzy">うろ覚え</button><button class="answer-button answer-perfect" data-answer="perfect">完璧</button></div><div class="edit-modal-overlay" id="editModalOverlay"><div class="edit-modal"><h3>単語データを編集</h3><div class="edit-modal-id" id="editModalId">#--</div><label>英単語</label><input type="text" id="editModalWord"><label>日本語訳</label><input type="text" id="editModalMeaning"><label>核心</label><input type="text" id="editModalCore"><label>暗記状況</label><select id="editModalStatus"><option value="unlearned">未暗記</option><option value="fuzzy">うろ覚え</option><option value="perfect">完璧</option><option value="mastered">覚えた</option></select><div class="edit-modal-buttons"><button class="edit-modal-cancel" id="editModalCancel">キャンセル</button><button class="edit-modal-save" id="editModalSave">保存</button></div></div></div></div><div class="ai-modal-overlay" id="aiModalOverlay"><div class="ai-modal"><div class="ai-modal-header"><h3>語源をAIに聞く</h3><button type="button" class="ai-modal-close" id="aiModalClose" aria-label="閉じる">×</button></div><div class="ai-word-label" id="aiWordLabel">--</div><div class="ai-result" id="aiResult">ここに語源の解説が表示されます。</div><div class="button-row"><button class="secondary-button" id="askAiButton">AIに聞く</button><button class="secondary-button" id="openChatGptButton">ChatGPTで聞く</button></div></div></div><div id="completeScreen"><div class="complete-title" id="completeTitle">今日の学習完了</div><div class="complete-text" id="completeText"></div><div id="completeHomeButtonWrap" style="width:100%; max-width:400px;"><button class="primary-button" id="completeHomeButton">ホームへ戻る</button></div><div id="completePracticeButtons" style="display:none; width:100%; max-width:400px; flex-direction:column; gap:10px;"><button class="primary-button" id="applyPracticeButton">この結果を単語データに反映する</button><button class="secondary-button" id="discardPracticeButton">反映せずに破棄する</button></div></div>
+</div><div class="setting-row"><span>単語数</span><div><input type="number" id="practiceCountInput" min="1" step="1"><span>語</span></div></div></div><div class="home-card" style="padding: 0; background: transparent; margin-top: 0;"><button class="primary-button" id="practiceStartButton">練習を始める</button></div></div></div><div id="studyScreen"><div class="self-review-overlay" id="selfReviewOverlay"><div class="sr-zone" data-position="topLeft"></div><div class="sr-zone" data-position="topCenter"></div><div class="sr-zone" data-position="topRight"></div><div class="sr-zone" data-position="middleLeft"></div><div class="sr-zone" data-position="center"></div><div class="sr-zone" data-position="middleRight"></div><div class="sr-zone" data-position="bottomLeft"></div><div class="sr-zone" data-position="bottomCenter"></div><div class="sr-zone" data-position="bottomRight"></div></div><div class="study-top-bar"><button class="study-back-button" id="studyBackButton">‹ ホーム</button><div class="study-top-right"><div class="study-progress" id="studyProgress">0 / 0</div><button class="study-icon-button" id="studyPrevButton" title="1つ前のカードに戻る">⟲</button><button class="study-icon-button" id="studyEditButton" title="この単語データを編集">✎</button></div></div><div class="card-area"><div class="word-card" id="wordCard"><div class="extra-review-badge" id="extraReviewBadge" style="display:none;">＋α復習</div><button class="replay-audio-button" id="replayAudioButton" title="音声をもう一度再生" aria-label="音声をもう一度再生"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg></button><div class="study-word-tools"><button class="study-ai-button" id="studyAiButton" type="button" title="この単語の語源をAIに聞く">語源AI</button><button class="study-core-button" id="studyCoreButton" type="button" title="この単語の核心を入力する">核心</button></div><div class="word" id="wordText">--</div><div class="meaning" id="meaningText">--</div><div class="core-answer" id="coreAnswer" style="display:none;"></div><div class="tap-hint" id="tapHint">タップして答えを見る</div></div></div><div class="answer-mark" id="answerMark"></div><div class="choice-area" id="choiceArea"><div class="choice-options" id="choiceOptions"></div></div><div class="answer-area"><button class="answer-button answer-again" data-answer="again">もう一度</button><button class="answer-button answer-fuzzy" data-answer="fuzzy">うろ覚え</button><button class="answer-button answer-perfect" data-answer="perfect">完璧</button></div><div class="edit-modal-overlay" id="editModalOverlay"><div class="edit-modal"><h3>単語データを編集</h3><div class="edit-modal-id" id="editModalId">#--</div><label>英単語</label><input type="text" id="editModalWord"><label>日本語訳</label><input type="text" id="editModalMeaning"><label>核心</label><input type="text" id="editModalCore"><label>暗記状況</label><select id="editModalStatus"><option value="unlearned">未暗記</option><option value="fuzzy">うろ覚え</option><option value="perfect">完璧</option><option value="mastered">覚えた</option></select><div class="edit-modal-buttons"><button class="edit-modal-cancel" id="editModalCancel">キャンセル</button><button class="edit-modal-save" id="editModalSave">保存</button></div></div></div></div><div class="ai-modal-overlay" id="aiModalOverlay"><div class="ai-modal"><div class="ai-modal-header"><h3>語源をAIに聞く</h3><button type="button" class="ai-modal-close" id="aiModalClose" aria-label="閉じる">×</button></div><div class="ai-word-label" id="aiWordLabel">--</div><div class="ai-result" id="aiResult">ここに語源の解説が表示されます。</div><div class="button-row"><button class="secondary-button" id="askAiButton">AIに聞く</button><button class="secondary-button" id="regenerateAiButton">語源AIで生成をし直す</button><button class="secondary-button" id="openChatGptButton">ChatGPTで聞く</button></div></div></div><div id="completeScreen"><div class="complete-title" id="completeTitle">今日の学習完了</div><div class="complete-text" id="completeText"></div><div id="completeHomeButtonWrap" style="width:100%; max-width:400px;"><button class="primary-button" id="completeHomeButton">ホームへ戻る</button></div><div id="completePracticeButtons" style="display:none; width:100%; max-width:400px; flex-direction:column; gap:10px;"><button class="primary-button" id="applyPracticeButton">この結果を単語データに反映する</button><button class="secondary-button" id="discardPracticeButton">反映せずに破棄する</button></div></div>
 <script>
 
 
@@ -1157,6 +1165,9 @@ const DEFAULT_SETTINGS = {
     aiModel: "gpt-5.6-luna",
     aiApiKey: "",
     aiDetail: "normal",
+    aiPrompt: "英単語「{word}」について、日本語で{detail}解説してください。語源・語構成（接頭辞/語根/接尾辞）をできるだけ正確に説明し、現在の意味にどうつながるかを示してください。語源に諸説ある場合は断定せず、その点も明記してください。学習に役立つ覚え方があれば最後に1つだけ提案してください。単語の意味は「{meaning}」です。",
+    aiApis: [],
+    aiNextIndex: 0,
     selfReviewEnabled: true,
     selfReviewMap: {
         topLeft: "again",
@@ -2383,27 +2394,76 @@ function showSaveMessage() {
 function loadAiSettingsUI() {
     const settings = getSettings();
     document.getElementById("aiEnabledSetting").value = settings.aiEnabled ? "true" : "false";
-    document.getElementById("aiEndpointSetting").value = settings.aiEndpoint || DEFAULT_SETTINGS.aiEndpoint;
-    document.getElementById("aiModelSetting").value = settings.aiModel || DEFAULT_SETTINGS.aiModel;
-    document.getElementById("aiApiKeySetting").value = settings.aiApiKey || "";
     document.getElementById("aiDetailSetting").value = settings.aiDetail || "normal";
+    document.getElementById("aiPromptSetting").value = settings.aiPrompt || DEFAULT_SETTINGS.aiPrompt;
+    renderAiApiList();
 }
 
 function saveAiSettingsFromUI() {
     const settings = getSettings();
+    const oldApis = getAiApis(settings);
     settings.aiEnabled = document.getElementById("aiEnabledSetting").value === "true";
-    settings.aiEndpoint = document.getElementById("aiEndpointSetting").value.trim() || DEFAULT_SETTINGS.aiEndpoint;
-    settings.aiModel = document.getElementById("aiModelSetting").value.trim() || DEFAULT_SETTINGS.aiModel;
-    settings.aiApiKey = document.getElementById("aiApiKeySetting").value.trim();
     settings.aiDetail = document.getElementById("aiDetailSetting").value;
+    settings.aiPrompt = document.getElementById("aiPromptSetting").value;
+    settings.aiApis = oldApis;
+    if (oldApis[0]) {
+        settings.aiEndpoint = oldApis[0].endpoint;
+        settings.aiModel = oldApis[0].model;
+        settings.aiApiKey = oldApis[0].apiKey;
+    }
     saveSettings(settings);
+    renderAiApiList();
     document.getElementById("aiSaveMessage").textContent = "保存しました";
     setTimeout(() => document.getElementById("aiSaveMessage").textContent = "", 1200);
 }
 
-["aiEnabledSetting", "aiEndpointSetting", "aiModelSetting", "aiApiKeySetting", "aiDetailSetting"].forEach(id => {
+["aiEnabledSetting", "aiDetailSetting", "aiPromptSetting"].forEach(id => {
     document.getElementById(id).addEventListener("change", saveAiSettingsFromUI);
+    document.getElementById(id).addEventListener("input", saveAiSettingsFromUI);
 });
+
+document.getElementById("addAiApiButton").addEventListener("click", () => {
+    const settings = getSettings();
+    const apis = getAiApis(settings);
+    apis.push({ endpoint: DEFAULT_SETTINGS.aiEndpoint, model: DEFAULT_SETTINGS.aiModel, apiKey: "", used: 0 });
+    settings.aiApis = apis;
+    saveSettings(settings);
+    renderAiApiList();
+});
+
+document.getElementById("resetAiApiUsageButton").addEventListener("click", () => {
+    const settings = getSettings();
+    settings.aiApis = getAiApis(settings).map(api => ({ ...api, used: 0 }));
+    settings.aiNextIndex = 0;
+    saveSettings(settings);
+    renderAiApiList();
+});
+
+document.getElementById("aiApiList").addEventListener("input", event => {
+    const item = event.target.closest(".ai-api-item");
+    const field = event.target.dataset.apiField;
+    if (!item || !field) return;
+    const settings = getSettings();
+    const apis = getAiApis(settings);
+    const index = Number(item.dataset.apiIndex);
+    if (!apis[index]) return;
+    apis[index][field] = event.target.value;
+    settings.aiApis = apis;
+    saveSettings(settings);
+});
+
+document.getElementById("aiApiList").addEventListener("click", event => {
+    const index = event.target.dataset.removeApi;
+    if (index === undefined) return;
+    const settings = getSettings();
+    const apis = getAiApis(settings);
+    apis.splice(Number(index), 1);
+    settings.aiApis = apis;
+    settings.aiNextIndex = Math.min(Number(settings.aiNextIndex) || 0, Math.max(apis.length - 1, 0));
+    saveSettings(settings);
+    renderAiApiList();
+});
+
 
 document.getElementById("volumeSetting").addEventListener("input", event => {
     const settings = getSettings();
@@ -3241,7 +3301,35 @@ document.querySelectorAll(".answer-button").forEach(button => {
 function getAiPrompt(word) {
     const settings = getSettings();
     const detail = settings.aiDetail === "short" ? "短く" : settings.aiDetail === "detailed" ? "詳しく" : "標準的な長さで";
-    return `英単語「${word.word}」について、日本語で${detail}解説してください。語源・語構成（接頭辞/語根/接尾辞）をできるだけ正確に説明し、現在の意味にどうつながるかを示してください。語源に諸説ある場合は断定せず、その点も明記してください。学習に役立つ覚え方があれば最後に1つだけ提案してください。単語の意味は「${word.meaning || "不明"}」です。`;
+    const template = settings.aiPrompt || DEFAULT_SETTINGS.aiPrompt;
+    return template
+        .replaceAll("{word}", word.word || "")
+        .replaceAll("{meaning}", word.meaning || "不明")
+        .replaceAll("{detail}", detail);
+}
+
+function getAiApis(settings) {
+    let apis = Array.isArray(settings.aiApis) ? settings.aiApis : [];
+    if (!apis.length && (settings.aiApiKey || settings.aiEndpoint || settings.aiModel)) {
+        apis = [{ endpoint: settings.aiEndpoint || DEFAULT_SETTINGS.aiEndpoint, model: settings.aiModel || DEFAULT_SETTINGS.aiModel, apiKey: settings.aiApiKey || "", used: 0 }];
+    }
+    return apis.map(api => ({
+        endpoint: api.endpoint || DEFAULT_SETTINGS.aiEndpoint,
+        model: api.model || DEFAULT_SETTINGS.aiModel,
+        apiKey: api.apiKey || "",
+        used: Math.max(0, Number(api.used) || 0)
+    }));
+}
+
+function getAvailableAiApi(settings) {
+    const apis = getAiApis(settings);
+    if (!apis.length) return { apis, index: -1 };
+    let start = Math.min(Math.max(Number(settings.aiNextIndex) || 0, 0), apis.length - 1);
+    for (let offset = 0; offset < apis.length; offset++) {
+        const index = (start + offset) % apis.length;
+        if (apis[index].apiKey && apis[index].used < 49) return { apis, index };
+    }
+    return { apis, index: -1 };
 }
 
 function extractApiText(data) {
@@ -3256,52 +3344,93 @@ function extractApiText(data) {
 }
 
 async function askAiForCurrentWord() {
+    return requestAiForCurrentWord(false);
+}
+
+let aiRequestSerial = 0;
+
+async function requestAiForCurrentWord(forceRegenerate = false) {
     if (!currentWord) return;
+
+    // 非同期通信中に次のカードへ進んでも、必ず「質問開始時の単語」を使う。
+    // ここを currentWord のまま await の後に参照すると、稀に別の単語へ回答が保存される。
+    const requestedWord = { ...currentWord };
+    const requestedWordId = requestedWord.id;
+    const requestedPrompt = getAiPrompt(requestedWord);
+    const requestSerial = ++aiRequestSerial;
+
     const settings = getSettings();
     const resultEl = document.getElementById("aiResult");
-    resultEl.textContent = "AIに質問しています…";
-    if (!settings.aiEnabled || !settings.aiApiKey) {
-        resultEl.textContent = "API設定がないため、ChatGPTを開いて質問する方式を使用してください。";
+    resultEl.textContent = forceRegenerate ? "語源を生成し直しています…" : "AIに質問しています…";
+    if (!settings.aiEnabled) {
+        resultEl.textContent = "API設定がOFFのため、「ChatGPTで聞く」を利用してください。";
         return;
     }
+    const selected = getAvailableAiApi(settings);
+    if (selected.index < 0) {
+        resultEl.textContent = "使用できるAPIがありません。各APIは1つにつき49回までです。設定からAPIを追加するか、使用回数をリセットしてください。";
+        return;
+    }
+    const api = selected.apis[selected.index];
+    api.used += 1;
+    settings.aiApis = selected.apis;
+    settings.aiNextIndex = selected.index + 1 >= selected.apis.length ? 0 : selected.index + 1;
+    saveSettings(settings);
+
     try {
-        const response = await fetch(settings.aiEndpoint, {
+        const response = await fetch(api.endpoint, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${settings.aiApiKey}`
-            },
-            body: JSON.stringify({
-                model: settings.aiModel,
-                input: getAiPrompt(currentWord),
-                store: false
-            })
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${api.apiKey}` },
+            body: JSON.stringify({ model: api.model, input: requestedPrompt, store: false })
         });
         if (!response.ok) throw new Error(`API ${response.status}`);
         const data = await response.json();
         const text = extractApiText(data);
         if (!text) throw new Error("empty response");
-        resultEl.textContent = text;
+
+        // 古いリクエストの結果で、より新しいリクエストの表示を上書きしない。
+        if (requestSerial === aiRequestSerial) {
+            resultEl.textContent = text;
+        }
 
         const words = getWords();
-        const target = words.find(word => word.id === currentWord.id);
+        const target = words.find(word => word.id === requestedWordId);
         if (target) {
-            target.aiPrompt = getAiPrompt(currentWord);
+            target.aiPrompt = requestedPrompt;
             target.aiAnswer = text;
             target.aiAskedAt = new Date().toISOString();
             saveWords(words);
-            currentWord = {
-                ...currentWord,
-                aiPrompt: target.aiPrompt,
-                aiAnswer: target.aiAnswer,
-                aiAskedAt: target.aiAskedAt
-            };
+
+            // 現在表示中のカードが質問開始時と同じ場合だけ currentWord を更新。
+            if (currentWord && currentWord.id === requestedWordId) {
+                currentWord = { ...currentWord, aiPrompt: target.aiPrompt, aiAnswer: target.aiAnswer, aiAskedAt: target.aiAskedAt };
+            }
         }
+        loadAiSettingsUI();
     } catch (error) {
         console.error(error);
-        resultEl.textContent = "API呼び出しに失敗しました。API URL・キー・CORS設定を確認してください。APIが使えない場合は「ChatGPTで聞く」を利用できます。";
+        if (requestSerial === aiRequestSerial) {
+            resultEl.textContent = "API呼び出しに失敗しました。API URL・キー・CORS設定を確認してください。";
+        }
     }
 }
+
+function renderAiApiList() {
+    const settings = getSettings();
+    let apis = getAiApis(settings);
+    const list = document.getElementById("aiApiList");
+    if (!list) return;
+    if (!apis.length) {
+        list.innerHTML = '<div class="setting-description">APIがまだありません。「＋ APIを追加」から登録してください。</div>';
+        return;
+    }
+    list.innerHTML = apis.map((api, i) => `<div class="ai-api-item" data-api-index="${i}"><div style="font-weight:700;">API ${i + 1}</div><div class="setting-row"><span>API URL</span><input type="text" data-api-field="endpoint" value="${escapeHtml(api.endpoint)}"></div><div class="setting-row"><span>モデル</span><input type="text" data-api-field="model" value="${escapeHtml(api.model)}"></div><div class="setting-row"><span>APIキー</span><input type="password" data-api-field="apiKey" value="${escapeHtml(api.apiKey)}" placeholder="sk-..."></div><div class="ai-api-meta">使用回数：${api.used} / 49</div><div class="button-row"><button class="danger-button" data-remove-api="${i}" ${apis.length === 1 ? "disabled" : ""}>このAPIを削除</button></div></div>`).join("");
+}
+
+function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+}
+
 
 function openAiModal() {
     if (!currentWord) return;
@@ -3352,6 +3481,7 @@ document.getElementById("aiModalOverlay").addEventListener("click", event => {
     if (event.target.id === "aiModalOverlay") closeAiModal();
 });
 document.getElementById("askAiButton").addEventListener("click", askAiForCurrentWord);
+document.getElementById("regenerateAiButton").addEventListener("click", () => requestAiForCurrentWord(true));
 document.getElementById("openChatGptButton").addEventListener("click", () => {
     if (!currentWord) return;
     const prompt = getAiPrompt(currentWord);
